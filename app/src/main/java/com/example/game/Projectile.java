@@ -12,6 +12,11 @@ public class Projectile
 //byte min value is -128 and max value is 127 (inclusive)
 
 
+    float aimX, aimY;
+    Bitmap crosshairBitmap;
+    short crosshairSize;  // width/height not needed because it's a square
+
+
 
     float orgIX, orgIY; // experimental.
     float percentOfPull;
@@ -53,7 +58,7 @@ public class Projectile
 
 
 
-    public Projectile (Resources res, float screenX, float screenY)
+    public Projectile (Resources res, float screenX, float screenY, float playerHitbox, float playerX, float playerY)
     {
         this.screenX = screenX;
         this.screenY = screenY;
@@ -61,33 +66,32 @@ public class Projectile
 
         ratioMtoPX = screenX / 14; // TODO: remember that if you scale this up, the ball will NOT move in the same ratio!!
 
+        crosshairSize = (short) (screenX/60f);
 
-        x = (int) ( 2 * ratioMtoPX); // two meters to the left of the edge.
-        y = (int) ( screenY - 2 * ratioMtoPX); // two meters up from the bottom.
 
-/*        x = (int) ( screenX /2 );
-        y = (int) ( screenY /2);*/
+        x = playerX + playerHitbox + crosshairSize/2f;
+        y = playerY - crosshairSize/2f;
 
+        aimX = x;
+        aimY = y;
 
         prevX = x;
         prevY = y;
 
-
-        // basketball diameter 24.1 cm or 0.241 meters * 2 for better looks
         width = (short) (0.2 * ratioMtoPX);
         height = (short) (0.2 * ratioMtoPX);
 
+        orgIX = x;
+        orgIY = y;
 
-        initialX = x + width /2f;
-        initialY = y + height /2f; // This is needed because the object:Ball is only initialized once.
 
-        orgIX = initialX;
-        orgIY = initialY;
 
         // Draw the ball:
         projectileBitmap = BitmapFactory.decodeResource(res, R.drawable.projectile);
         projectileBitmap = Bitmap.createScaledBitmap(projectileBitmap, width, height, false);
 
+        crosshairBitmap = BitmapFactory.decodeResource(res, R.drawable.crosshair);
+        crosshairBitmap = Bitmap.createScaledBitmap(crosshairBitmap, crosshairSize, crosshairSize, false);
 
 
         // Physics-related stuff: todo -> NOT NEGATIVE GRAVITY,  also:   ball.vy = ball.v0y + ball.GRAVITY * ball.time;
@@ -101,6 +105,7 @@ public class Projectile
 
         collision = 0; // = no collision.
         percentOfPull = 0;
+
 
         dotArrayListX = new ArrayList<>();
         dotArrayListY = new ArrayList<>();
@@ -118,9 +123,15 @@ public class Projectile
         this.y = y - height /2f;
     }
 
+    void setCrosshairPosition (float x, float y) {
+        this.aimX = x - width /2f; // '- width /2f' is for going from current position to touch position smoothly
+        this.aimY = y - height /2f;
+    }
 
+
+/*
     float ballAngle() // from initial position.
-    {return angle = (float) (Math.atan2(initialY - (y + height / 2f), initialX - (x + width / 2f)));}
+    {return angle = (float) (Math.atan2(initialY - (y + height / 2f), initialX - (x + width / 2f)));}*/
 /*
     The atan() and atan2() functions calculate the arc-tangent of x and y/x, respectively.
 
@@ -128,12 +139,13 @@ public class Projectile
     The atan2() function returns a value in the range -π to π radians.
  */
 
-    float findAngleWhenOutside(float Tx, float Ty) // Find Angle When Finger Is Touching Outside, T - Touch point || * returns a radian
-    {return (float) (Math.atan2(initialY - Ty, initialX - Tx ));} // discussion: "degrees vs radians"
+    float findAngle(float Tx, float Ty, float playerX, float playerY) // Find Angle When Finger Is Touching Outside, T - Touch point || * returns a radian
+    {return (float) (Math.atan2(playerY +  - Ty, playerX - Tx ));}
 
 
     float calcDistanceFromI(float x, float y) // To know whether or not the ball is at max distance from i.
     {return (float) Math.sqrt((orgIX - x) * (orgIX - x) + (orgIY - y) * (orgIY - y));}
+
 
 
 
@@ -142,16 +154,6 @@ public class Projectile
         thrown = false; // also resets time in: GameView.java -> sleep() -> if (ball.thrown) !|-> else {ball.time = 0;}
         collision = 0; // = no collision.
 
-
-
-        howManyCols = 0;
-        floorHitCount = 0;
-
-        initialX = orgIX;
-        initialY = orgIY;
-
-        x = initialX - width / 2f;
-        y = initialY - height / 2f;
 
         prevX = x;
         prevY = y;
