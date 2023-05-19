@@ -8,72 +8,47 @@ import android.graphics.BitmapFactory;
 public class Projectile
 {
 
-//short min value is -32,768 and max value is 32,767 (inclusive).
-//byte min value is -128 and max value is 127 (inclusive)
 
-
-    float aimX, aimY;
-    Bitmap crosshairBitmap;
-    short crosshairSize;  // width/height not needed because it's a square
-
-
-
-    float orgIX, orgIY; // experimental.
-    float percentOfPull;
-    short maxBallPull;         // radius of the circle which determines max dist. ball from initial point
-
+    //projectile
+    float initialX, initialY;  // acts as the (0,0) point relative to the ball.
     float x, y;
-    short width, height;  //short is like int
-    boolean isTouched = false;     // true => touchDown (on the screen).
+    float prevX, prevY;
+    short width, height;
     Bitmap projectileBitmap;
 
 
-    float prevX, prevY;
-
-
-    float initialX, initialY;  // acts as the (0,0) point relative to the ball.
-    float screenX, screenY;
-    byte quarter;
+    //physics
     float angle;
-
-
-    float removeBall_time;
-    float v, vx, vy, v0y; // velocity, velocityX, velocityY, initialVelocityY
+    float v ,vx, vy, v0y; // velocity, velocityX, velocityY, initialVelocityY
     float time;
-    float range; // of projectile.
-    float HEIGHT;
-    boolean thrown;
-
-    final float MAX_VELOCITY; //meters per second.
     float GRAVITY;
+    boolean isThrown;
     final float ratioMtoPX; // discussion: Pixels to centimeters #19 || x pixels to meters.
 
-    byte collision; // 0 = no collision, 1 = right wall, 2 = left wall, 3 = ground.
-    byte howManyCols;
-    byte floorHitCount;
-    // discussion: Changing Direction #34 -> number 1.
 
     ArrayList<Float> dotArrayListX;
     ArrayList<Float> dotArrayListY;
 
 
+    float screenX, screenY, groundHeight;
 
-    public Projectile (Resources res, float screenX, float screenY, float playerHitbox, float playerX, float playerY)
+
+    /* TODO: don't remove the projectile even when needed so you can still see the path, instead make the bitmap null, and damage = 0 */
+
+
+    public Projectile (Resources res, float screenX, float screenY, float aimX, float aimY, float groundHeight)
     {
         this.screenX = screenX;
         this.screenY = screenY;
-
+        this.groundHeight = groundHeight;
 
         ratioMtoPX = screenX / 14; // TODO: remember that if you scale this up, the ball will NOT move in the same ratio!!
 
-        crosshairSize = (short) (screenX/60f);
+        isThrown = false;
 
+        x = aimX ;
+        y = aimY;
 
-        x = playerX + playerHitbox + crosshairSize/2f;
-        y = playerY - crosshairSize/2f;
-
-        aimX = x;
-        aimY = y;
 
         prevX = x;
         prevY = y;
@@ -81,30 +56,19 @@ public class Projectile
         width = (short) (0.2 * ratioMtoPX);
         height = (short) (0.2 * ratioMtoPX);
 
-        orgIX = x;
-        orgIY = y;
-
-
 
         // Draw the ball:
         projectileBitmap = BitmapFactory.decodeResource(res, R.drawable.projectile);
         projectileBitmap = Bitmap.createScaledBitmap(projectileBitmap, width, height, false);
 
-        crosshairBitmap = BitmapFactory.decodeResource(res, R.drawable.crosshair);
-        crosshairBitmap = Bitmap.createScaledBitmap(crosshairBitmap, crosshairSize, crosshairSize, false);
 
 
         // Physics-related stuff: todo -> NOT NEGATIVE GRAVITY,  also:   ball.vy = ball.v0y + ball.GRAVITY * ball.time;
         GRAVITY =  9.8f * 6.3f * ratioMtoPX; // should be negative due to the earth's gravity pulling it downwards.
-        MAX_VELOCITY = 21 * 1.4f * ratioMtoPX; // also max pull | meters per second.
+        v = 21 * 1.4f * ratioMtoPX; // also max pull | meters per second.
         time = 0;
 
-        howManyCols = 0;
-        floorHitCount = 0;
-        removeBall_time = 0;
 
-        collision = 0; // = no collision.
-        percentOfPull = 0;
 
 
         dotArrayListX = new ArrayList<>();
@@ -113,57 +77,34 @@ public class Projectile
     }
 
 
-    boolean isTouching (float x, float y) // Did touch in bounds?
-    {return ((x >= this.x) && (x <= this.x + width) && y >= this.y) && (y <= this.y + height);}
 
 
 
-    void setPosition (float x, float y) {
-        this.x = x - width /2f; // '- width /2f' is for going from current position to touch position smoothly
-        this.y = y - height /2f;
-    }
-
-    void setCrosshairPosition (float x, float y) {
-        this.aimX = x - width /2f; // '- width /2f' is for going from current position to touch position smoothly
-        this.aimY = y - height /2f;
-    }
-
-
-/*
-    float ballAngle() // from initial position.
-    {return angle = (float) (Math.atan2(initialY - (y + height / 2f), initialX - (x + width / 2f)));}*/
+    float findAngle(float Tx, float Ty, float playerX, float playerY) // Find Angle When Finger Is Touching Outside, T - Touch point || * returns a radian
+    {return (float) (Math.atan2(playerY +  - Ty, playerX - Tx ));}
 /*
     The atan() and atan2() functions calculate the arc-tangent of x and y/x, respectively.
-
     The atan() function returns a value in the range -π/2 to π/2 radians.
     The atan2() function returns a value in the range -π to π radians.
  */
 
-    float findAngle(float Tx, float Ty, float playerX, float playerY) // Find Angle When Finger Is Touching Outside, T - Touch point || * returns a radian
-    {return (float) (Math.atan2(playerY +  - Ty, playerX - Tx ));}
 
 
-    float calcDistanceFromI(float x, float y) // To know whether or not the ball is at max distance from i.
-    {return (float) Math.sqrt((orgIX - x) * (orgIX - x) + (orgIY - y) * (orgIY - y));}
-
-
-
-
-    public void reset () // for dev (me haha... ಥ_ಥ )
+    public boolean toRemove ()
     {
-        thrown = false; // also resets time in: GameView.java -> sleep() -> if (ball.thrown) !|-> else {ball.time = 0;}
-        collision = 0; // = no collision.
+/*        if (x + width > screenX/2)
+            return true;*/
 
 
-        prevX = x;
-        prevY = y;
 
-        angle = 0;
-        removeBall_time = 0;
+        if (y  + height >= screenY - groundHeight)
+            return true;
 
-        dotArrayListX.clear();
-        dotArrayListY.clear(); // erase dots.
+
+        //or if hit mob
+
+
+        return false;
     }
-
 
 }

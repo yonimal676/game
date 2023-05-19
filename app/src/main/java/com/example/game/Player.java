@@ -5,8 +5,20 @@ import android.graphics.BitmapFactory;
 
 public class Player
 {
+
+
+
+    //crosshair (aim)
+    float aimX, aimY;
+    short crosshairSize;  // width/height not needed because it's a square
+    Bitmap crosshairBitmap;
+
+
+
+
     float x,y;
     float width, height;
+    float midX, midY;
     int iteration_of_throw;
 
     Bitmap bobNormalBitmap;
@@ -21,19 +33,39 @@ public class Player
         y = (short) (screenY - height - groundHeight);
 
 
+        midX = x + width / 2;
+        midY = y + height / 2;
+
+
         bobNormalBitmap = BitmapFactory.decodeResource(res, R.drawable.bob_normal);
         bobNormalBitmap = Bitmap.createScaledBitmap(bobNormalBitmap, (int) width, (int) height, false);
-
-
-
 
         bobThrowingBitmap = BitmapFactory.decodeResource(res, R.drawable.bob_throwing);
         bobThrowingBitmap = Bitmap.createScaledBitmap(bobThrowingBitmap, (int) width, (int) height, false);
 
 
 
+        aimX = x + 1.2f * width ;
+        aimY = y;
+
+
+        crosshairSize = (short) (screenX/60f);
+
+
+        crosshairBitmap = BitmapFactory.decodeResource(res, R.drawable.crosshair);
+        crosshairBitmap = Bitmap.createScaledBitmap(crosshairBitmap, crosshairSize, crosshairSize, false);
+
+
+
+
+
     }
 
+
+    void setCrosshairPosition (float x, float y) {
+        this.aimX = x;
+        this.aimY = y;
+    }
 
 
 
