@@ -6,23 +6,32 @@ import android.graphics.BitmapFactory;
 public class Player
 {
 
-
-
-    //crosshair (aim)
+    //shoot
     float aimX, aimY;
     short crosshairSize;  // width/height not needed because it's a square
+    int iteration_of_throw;
     Bitmap crosshairBitmap;
 
-
-
-
+    //player
     float x,y;
     float width, height;
     float midX, midY;
-    int iteration_of_throw;
-
+    byte hearts;
+    byte maxHearts;
+    byte ammo;
+    byte maxAmmo;
+    int iterationForAmmoRegeneration;
+    int AmmoRegenerationPace;
     Bitmap bobNormalBitmap;
     Bitmap bobThrowingBitmap;
+    Bitmap heartBitmap;
+    Bitmap emptyHeartBitmap;
+    Bitmap ammoBitmap;
+    Bitmap emptyAmmoBitmap;
+
+
+
+
 
     public Player (Resources res, int screenX, int screenY, int groundHeight)
     {
@@ -55,6 +64,26 @@ public class Player
         crosshairBitmap = BitmapFactory.decodeResource(res, R.drawable.crosshair);
         crosshairBitmap = Bitmap.createScaledBitmap(crosshairBitmap, crosshairSize, crosshairSize, false);
 
+        maxHearts = 3;
+        hearts = 3;
+
+        heartBitmap = BitmapFactory.decodeResource(res, R.drawable.heart);
+        heartBitmap = Bitmap.createScaledBitmap(heartBitmap, crosshairSize, crosshairSize,false);
+
+        emptyHeartBitmap = BitmapFactory.decodeResource(res, R.drawable.empty_heart);
+        emptyHeartBitmap = Bitmap.createScaledBitmap(emptyHeartBitmap, crosshairSize, crosshairSize,false);
+
+
+        maxAmmo = 3;
+        ammo = 3;
+        AmmoRegenerationPace = 50;
+        iterationForAmmoRegeneration = AmmoRegenerationPace;
+
+        ammoBitmap = BitmapFactory.decodeResource(res, R.drawable.projectile);
+        ammoBitmap = Bitmap.createScaledBitmap(ammoBitmap,  (int) (crosshairSize/1.3) , (int) (crosshairSize/1.3), false);
+
+        emptyAmmoBitmap = BitmapFactory.decodeResource(res, R.drawable.empty_ammo);
+        emptyAmmoBitmap = Bitmap.createScaledBitmap(emptyAmmoBitmap,  (int) (crosshairSize/1.3) , (int) (crosshairSize/1.3), false);
 
 
 

@@ -28,7 +28,6 @@ public class Projectile
 
     ArrayList<Float> dotArrayListX;
     ArrayList<Float> dotArrayListY;
-    int iterationOfRemoval;
 
     byte damage;
 

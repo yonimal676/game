@@ -1,20 +1,17 @@
 package com.example.game;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
-
 import java.util.ArrayList;
 
 
-public class GameView extends SurfaceView implements Runnable {
+public class GameView extends SurfaceView implements Runnable
+{
 
     private final Paint paint;
     private final Paint path_paint;
@@ -97,6 +94,16 @@ public class GameView extends SurfaceView implements Runnable {
 
     public void update() // issue: physics #25
     {
+
+        if (player.ammo <= player.maxAmmo) {
+            if (player.iterationForAmmoRegeneration == 0)
+                player.ammo++;
+            else
+                player.iterationForAmmoRegeneration--;
+        }
+        else
+            player.iterationForAmmoRegeneration = player.AmmoRegenerationPace;
+
 
         for (int i = 0; i < p_arr.size(); i++)
         {
@@ -187,14 +194,11 @@ public class GameView extends SurfaceView implements Runnable {
                 for (short j = 0; j < p_arr.get(i).dotArrayListX.size() - 2; j++) // draw *all* the dots of *all* projectiles | -2 for delay
                 {
                     try {
-                        screenCanvas.drawCircle(p_arr.get(i).dotArrayListX.get(j), p_arr.get(i).dotArrayListY.get(j), p_arr.get(i).width / 40f * j, path_paint);
+                        screenCanvas.drawCircle(p_arr.get(i).dotArrayListX.get(j), p_arr.get(i).dotArrayListY.get(j), p_arr.get(i).width / 40f * j+1, path_paint);
                     }
                     catch(Exception ignored){}
                 }
                 // cool idea:  * i * i when boosted
-
-
-
 
             }
 
@@ -214,6 +218,27 @@ public class GameView extends SurfaceView implements Runnable {
 
 
 
+
+
+            for (int i = 1; i <= player.maxHearts; i++)
+            {
+                if (i > player.hearts)
+                    screenCanvas.drawBitmap(player.emptyHeartBitmap, i * player.crosshairSize, player.crosshairSize, paint);
+                else
+                    screenCanvas.drawBitmap(player.heartBitmap, i * player.crosshairSize, player.crosshairSize, paint);
+            }
+
+
+
+
+            for (int i = 1; i <= player.maxAmmo; i++)
+            {
+                if (i > player.ammo)
+                    screenCanvas.drawBitmap(player.emptyAmmoBitmap, i * player.crosshairSize, player.crosshairSize * 2.5f, paint);
+                else
+                    screenCanvas.drawBitmap(player.ammoBitmap, i * player.crosshairSize, player.crosshairSize * 2.5f, paint);
+
+            }
 
 
 
@@ -290,6 +315,7 @@ public class GameView extends SurfaceView implements Runnable {
                 p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, ground.height));
 
 
+
                 if ( ! p_arr.isEmpty())
                     angle_of_touch = p_arr.get(p_arr.size()-1).findAngle(event.getX(), event.getY(), player.midX, player.midY);
 
@@ -360,6 +386,12 @@ public class GameView extends SurfaceView implements Runnable {
 
                 if ( ! p_arr.isEmpty())
                 {
+                    if (p_arr.size() <= player.ammo)
+                        player.ammo--;
+
+
+
+
                     p_arr.get(p_arr.size() - 1).isThrown = true;
 
 
