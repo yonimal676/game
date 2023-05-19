@@ -15,7 +15,7 @@ public class Projectile
     float prevX, prevY;
     short width, height;
     Bitmap projectileBitmap;
-
+    Bitmap transparentBitmap;
 
     //physics
     float angle;
@@ -28,6 +28,9 @@ public class Projectile
 
     ArrayList<Float> dotArrayListX;
     ArrayList<Float> dotArrayListY;
+    int iterationOfRemoval;
+
+    byte damage;
 
 
     float screenX, screenY, groundHeight;
@@ -62,6 +65,10 @@ public class Projectile
         projectileBitmap = Bitmap.createScaledBitmap(projectileBitmap, width, height, false);
 
 
+        // to nullify the original bitmap
+        transparentBitmap = BitmapFactory.decodeResource(res, R.drawable.projectile);
+        transparentBitmap = Bitmap.createScaledBitmap(transparentBitmap, 1, 1, false);
+
 
         // Physics-related stuff: todo -> NOT NEGATIVE GRAVITY,  also:   ball.vy = ball.v0y + ball.GRAVITY * ball.time;
         GRAVITY =  9.8f * 6.3f * ratioMtoPX; // should be negative due to the earth's gravity pulling it downwards.
@@ -70,9 +77,12 @@ public class Projectile
 
 
 
-
         dotArrayListX = new ArrayList<>();
         dotArrayListY = new ArrayList<>();
+
+
+
+        damage = 1;
 
     }
 
@@ -90,21 +100,5 @@ public class Projectile
 
 
 
-    public boolean toRemove ()
-    {
-/*        if (x + width > screenX/2)
-            return true;*/
-
-
-
-        if (y  + height >= screenY - groundHeight)
-            return true;
-
-
-        //or if hit mob
-
-
-        return false;
-    }
 
 }

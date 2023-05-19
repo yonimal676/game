@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 
@@ -33,8 +34,6 @@ public class GameView extends SurfaceView implements Runnable {
     private Thread thread;
     private final GameActivity activity;
     private final Context gameActivityContext;
-    private Bitmap showAxis;   // screen axis in comparison to initial ball place #12
-    private byte showAxisBool; // 0 -> false, 1 -> true
     private int sleep_millis;
 
     private float angle_of_touch;
@@ -43,7 +42,8 @@ public class GameView extends SurfaceView implements Runnable {
     float px, py;
 
 
-    public GameView(GameActivity activity, short screenX, short screenY) {
+    public GameView(GameActivity activity, short screenX, short screenY)
+    {
         super(activity);
 
         this.activity = activity;
@@ -74,9 +74,6 @@ public class GameView extends SurfaceView implements Runnable {
         path_paint.setStrokeWidth(4f);
 
 
-        showAxis = BitmapFactory.decodeResource(getResources(), R.drawable.play_btn);
-        showAxis = Bitmap.createScaledBitmap(showAxis, screenX / 10, screenX / 10, false);
-        showAxisBool = 0;
         iterations = 0;
         sleep_millis = 10;
     }
@@ -95,26 +92,45 @@ public class GameView extends SurfaceView implements Runnable {
     }
 
 
+
+
+
     public void update() // issue: physics #25
     {
 
         for (int i = 0; i < p_arr.size(); i++)
-            if (p_arr.get(i).toRemove())
-                p_arr.remove(p_arr.get(i));
+        {
+
+            //supposed removal of projectile
+            if (toRemove(p_arr.get(i).x, p_arr.get(i).y, p_arr.get(i).height))
+            {
+                p_arr.get(i).damage = 0;
+                p_arr.get(i).projectileBitmap = p_arr.get(i).transparentBitmap; // "remove" the projectile
+
+            }
+
+
+        }
+
+
+
 
 
         for (int i = 0; i < p_arr.size(); i++) // shoot (empty the array)
         {
+
             if (p_arr.get(i).isThrown)
             {
-                p_arr.get(i).prevX = p_arr.get(i).x;
-                p_arr.get(i).prevY = p_arr.get(i).y; // for collision physics.
+
+                p_arr.get(i).prevX = p_arr.get(i).x ;
+                p_arr.get(i).prevY = p_arr.get(i).y ; // prevX=x and then update x.
 
 
                 physics(p_arr.get(i));  // -> if collided will call physicsUpdate()
 
 
-                //dots arrays
+
+                // limit dot arrays
                 p_arr.get(i).dotArrayListX.add(p_arr.get(i).x + fixX(p_arr.get(i))); // → ↓
                 if (p_arr.get(i).dotArrayListX.size() > 15)
                     p_arr.get(i).dotArrayListX.remove(0);
@@ -122,10 +138,16 @@ public class GameView extends SurfaceView implements Runnable {
                 p_arr.get(i).dotArrayListY.add(p_arr.get(i).y + fixY(p_arr.get(i))); // show path of the ball
                 if (p_arr.get(i).dotArrayListY.size() > 15)
                     p_arr.get(i).dotArrayListY.remove(0);
+
+
+                if (toRemove(p_arr.get(i).dotArrayListX.get(0),   p_arr.get(i).dotArrayListY.get(0), p_arr.get(i).height ))
+                    p_arr.remove(p_arr.get(i));
+
             }
         }
 
     }
+
 
 
     public void physics(Projectile p) // issue: physics #25
@@ -143,50 +165,37 @@ public class GameView extends SurfaceView implements Runnable {
 
 
 
-
-
-
-
-
-
-
-
-
-
     public void draw()
     {
         if (getHolder().getSurface().isValid()) // is the surface valid?
         {
             Canvas screenCanvas = getHolder().lockCanvas(); // create the canvas
 
-            // KEEP IN MIND THAT THE ORDER MATTERS! ↓
+            //background
+            screenCanvas.drawBitmap(background.backgroundBitmap, 0, 0, paint);//background
 
 
-            //dev-mode
-            if (showAxisBool == 0)
-                screenCanvas.drawBitmap(background.backgroundBitmap, 0, 0, paint);//background
-            else
-                screenCanvas.drawBitmap(background.devBackgroundBitmap, 0, 0, paint);//background
-
-
-
-            //Dots (path)
             for (int i = 0; i < p_arr.size(); i++)
             {
-                for (short j = 0; j < p_arr.get(i).dotArrayListX.size() - 2; j++)
-                    try {
-                        screenCanvas.drawCircle(p_arr.get(i).dotArrayListX.get(j), p_arr.get(i).dotArrayListY.get(j),
-                                p_arr.get(i).width / 40f * j, path_paint);
-                    } catch (Exception ignored) {
-                    }
-
-                // cool idea:  * i * i when boosted
-
-
 
                 //projectile
                 if (p_arr.get(i).isThrown)
                     screenCanvas.drawBitmap(p_arr.get(i).projectileBitmap, p_arr.get(i).x, p_arr.get(i).y, paint);//ball
+
+
+                //Dots (path)
+                for (short j = 0; j < p_arr.get(i).dotArrayListX.size() - 2; j++) // draw *all* the dots of *all* projectiles | -2 for delay
+                {
+                    try {
+                        screenCanvas.drawCircle(p_arr.get(i).dotArrayListX.get(j), p_arr.get(i).dotArrayListY.get(j), p_arr.get(i).width / 40f * j, path_paint);
+                    }
+                    catch(Exception ignored){}
+                }
+                // cool idea:  * i * i when boosted
+
+
+
+
             }
 
             //ground
@@ -196,6 +205,7 @@ public class GameView extends SurfaceView implements Runnable {
             screenCanvas.drawBitmap(player.crosshairBitmap, player.aimX, player.aimY, paint);//ball
 
 
+
             //bob throwing projectile
             if ( (player.iteration_of_throw + (100/sleep_millis) >= iterations))
                 screenCanvas.drawBitmap(player.bobThrowingBitmap, player.x, player.y, paint);
@@ -203,23 +213,14 @@ public class GameView extends SurfaceView implements Runnable {
                 screenCanvas.drawBitmap(player.bobNormalBitmap, player.x, player.y, paint);
 
 
-//            screenCanvas.drawBitmap(showAxis, screenX / 2f , 0, paint);//button to show initial axis
 
-            if (p_arr.size() != 0)
-                showStats(screenCanvas, p_arr.get(p_arr.size()-1));
 
-            screenCanvas.drawBitmap(showAxis, screenX / 2f, 0, paint);//button to show initial axis
 
 
 
             getHolder().unlockCanvasAndPost(screenCanvas);
         }
-    } /* DRAW */
-
-
-
-
-
+    }
 
 
 
@@ -274,19 +275,6 @@ public class GameView extends SurfaceView implements Runnable {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
     @Override
     public boolean onTouchEvent(MotionEvent event) // this is a method that helps me detect touch.
     {
@@ -294,7 +282,10 @@ public class GameView extends SurfaceView implements Runnable {
         switch (event.getAction()) // down/move/up
         {
 
+
+
             case MotionEvent.ACTION_DOWN:// started touch
+
 
                 p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, ground.height));
 
@@ -325,22 +316,21 @@ public class GameView extends SurfaceView implements Runnable {
                 }
 
 
-                // DEV MODE
-                if (event.getRawX() >= screenX / 2f && event.getRawX() <= screenX / 2f + screenX / 10f
-                        && event.getRawY() >= 0 && event.getRawY() <= screenX / 10f)
-                    showAxisBool = (byte) ((showAxisBool == 0) ? 1 : 0);
+
 
                 break;
+
+
+
+
+
 
 
             case MotionEvent.ACTION_MOVE: // pressed and moving
 
 
-
                 if ( ! p_arr.isEmpty())
                     angle_of_touch = p_arr.get(p_arr.size()-1).findAngle(event.getX(), event.getY(), player.midX, player.midY);
-
-
 
                 quarterOfThrow();
 
@@ -368,21 +358,21 @@ public class GameView extends SurfaceView implements Runnable {
 
             case MotionEvent.ACTION_UP:
 
-
-                p_arr.get(p_arr.size() - 1).isThrown = true;
-
-
-                p_arr.get(p_arr.size() - 1).initialX = player.aimX;
-                p_arr.get(p_arr.size() - 1).initialY = player.aimY;
+                if ( ! p_arr.isEmpty())
+                {
+                    p_arr.get(p_arr.size() - 1).isThrown = true;
 
 
+                    p_arr.get(p_arr.size() - 1).initialX = player.aimX;
+                    p_arr.get(p_arr.size() - 1).initialY = player.aimY;
 
-                player.iteration_of_throw = iterations; // for showing bob throwing
 
-                p_arr.get(p_arr.size() - 1).vx = (float) ( -1 * Math.cos(angle_of_touch) * p_arr.get(p_arr.size() - 1).v);
-                p_arr.get(p_arr.size() - 1).v0y = (float) ( -1 * Math.sin(angle_of_touch) * p_arr.get(p_arr.size() - 1).v);
-                // TODO: why -1 * ?
+                    player.iteration_of_throw = iterations; // for showing bob throwing
 
+                    p_arr.get(p_arr.size() - 1).vx = (float) (-1 * Math.cos(angle_of_touch) * p_arr.get(p_arr.size() - 1).v);
+                    p_arr.get(p_arr.size() - 1).v0y = (float) (-1 * Math.sin(angle_of_touch) * p_arr.get(p_arr.size() - 1).v);
+                    // TODO: why -1 * ?
+                }
 
                 break;
 
@@ -396,52 +386,17 @@ public class GameView extends SurfaceView implements Runnable {
 
 
 
-
-
-
-    /////////////////////////////////////////////////////////////////////////
-    // general functions
-
-
-    public void showStats (Canvas screenCanvas, Projectile p)
+    public boolean toRemove (float x, float y, float height) // needed because then it could also be used for dotArray
     {
+/*        if (x + width > screenX/2)
+            return true;*/
 
 
-        if (showAxisBool == 1) {
-
-            if (p.isThrown) {
-                screenCanvas.drawLine(p.prevX, p.prevY + fixY(p), p.x, p.y + fixY(p), paint);
-//              SHOW BALL AXIS:
-                screenCanvas.drawLine(0, p.y + fixY(p), screenX, p.y + fixY(p), paint);
-                screenCanvas.drawLine(p.x + fixX(p), 0, p.x + fixX(p), screenY, paint);
-
-                // SHOW i AXIS:
-                screenCanvas.drawLine(0, p.initialY + fixY(p), screenX, p.initialY + fixX(p), paint);
-                screenCanvas.drawLine(p.initialX + fixX(p), 0, p.initialX + fixX(p), screenY, paint);
-
-            }
+        return y + height >= screenY - ground.height;
 
 
-            ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-            screenCanvas.drawText("X: " + p.x + fixX(p), 75, 50, paint);
-            screenCanvas.drawText("Y: " + p.y + fixY(p), 75, 75, paint);
-
-            screenCanvas.drawText("Angle: ∠ " + (float) (180 / Math.PI * p.angle) + "°", 75, 110, paint);
-            screenCanvas.drawText("velocity (m/s): " + p.v / p.ratioMtoPX, 75, 130, paint);
-            screenCanvas.drawText("velocityX (m/s): " + p.vx / p.ratioMtoPX, 75, 150, paint);
-            screenCanvas.drawText("velocityY (m/s): " + p.vy / p.ratioMtoPX, 75, 170, paint);
-            screenCanvas.drawText("v0y: " + p.v0y / p.ratioMtoPX, 75, 210, paint);
-
-            screenCanvas.drawText("Time: " + (int) game_time + "s",75, 2503, paint);
-
-
-        }
-
-
-    } // TODO: THIS BLOCK IS TEMP
-
+        //or if hit mob
+    }
 
 
     public void quarterOfThrow ()

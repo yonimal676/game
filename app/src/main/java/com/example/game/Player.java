@@ -45,8 +45,8 @@ public class Player
 
 
 
-        aimX = x + 1.2f * width ;
-        aimY = y;
+        aimX = (float) ( midX + Math.cos(45) * height);
+        aimY = (float) ( midY - Math.sin(45) * height);// so that the starting position would be similar to the first shot
 
 
         crosshairSize = (short) (screenX/60f);
