@@ -95,16 +95,6 @@ public class GameView extends SurfaceView implements Runnable
     public void update() // issue: physics #25
     {
 
-        if (player.ammo <= player.maxAmmo) {
-            if (player.iterationForAmmoRegeneration == 0)
-                player.ammo++;
-            else
-                player.iterationForAmmoRegeneration--;
-        }
-        else
-            player.iterationForAmmoRegeneration = player.AmmoRegenerationPace;
-
-
         for (int i = 0; i < p_arr.size(); i++)
         {
 
@@ -152,6 +142,24 @@ public class GameView extends SurfaceView implements Runnable
 
             }
         }
+
+
+
+
+
+
+        if (player.ammo < player.maxAmmo) //needs filling
+        {
+            if (player.iterationForAmmoRegeneration == 0) {// regen now
+                player.ammo++;
+                player.iterationForAmmoRegeneration = player.AmmoRegenerationPace; // regen once at a time
+            }
+            else
+                player.iterationForAmmoRegeneration--; // countdown till regen
+        }
+
+        else //filling unneeded
+            player.iterationForAmmoRegeneration = player.AmmoRegenerationPace;
 
     }
 
@@ -312,34 +320,35 @@ public class GameView extends SurfaceView implements Runnable
             case MotionEvent.ACTION_DOWN:// started touch
 
 
-                p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, ground.height));
+                    p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, ground.height));
 
 
-
-                if ( ! p_arr.isEmpty())
-                    angle_of_touch = p_arr.get(p_arr.size()-1).findAngle(event.getX(), event.getY(), player.midX, player.midY);
-
-
-                quarterOfThrow();
+                    if (!p_arr.isEmpty())
+                        angle_of_touch = p_arr.get(p_arr.size() - 1).findAngle(event.getX(), event.getY(), player.midX, player.midY);
 
 
-
-                px = (float) Math.abs(Math.cos(angle_of_touch) * player.height);
-                py = (float) Math.abs(Math.sin(angle_of_touch) * player.height);
-                //  perpendicular (ניצב), x- adjacent (ליד), y - opposite (מול)
+                    quarterOfThrow();
 
 
-                switch (quarter)
-                {
-                    case 1: player.setCrosshairPosition(player.midX + px, player.midY - py);
-                        break;
-                    case 2: player.setCrosshairPosition(player.midX - px, player.midY - py);
-                        break;
-                    case 3: player.setCrosshairPosition(player.midX - px, player.midY + py);
-                        break;
-                    case 4: player.setCrosshairPosition(player.midX + px, player.midY + py);
-                        break;
-                }
+                    px = (float) Math.abs(Math.cos(angle_of_touch) * player.height);
+                    py = (float) Math.abs(Math.sin(angle_of_touch) * player.height);
+                    //  perpendicular (ניצב), x- adjacent (ליד), y - opposite (מול)
+
+
+                    switch (quarter) {
+                        case 1:
+                            player.setCrosshairPosition(player.midX + px, player.midY - py);
+                            break;
+                        case 2:
+                            player.setCrosshairPosition(player.midX - px, player.midY - py);
+                            break;
+                        case 3:
+                            player.setCrosshairPosition(player.midX - px, player.midY + py);
+                            break;
+                        case 4:
+                            player.setCrosshairPosition(player.midX + px, player.midY + py);
+                            break;
+                    }
 
 
 
@@ -384,10 +393,9 @@ public class GameView extends SurfaceView implements Runnable
 
             case MotionEvent.ACTION_UP:
 
-                if ( ! p_arr.isEmpty())
-                {
-                    if (p_arr.size() <= player.ammo)
-                        player.ammo--;
+
+                if (player.ammo >= 1){
+                    player.ammo--;
 
 
 
@@ -404,7 +412,8 @@ public class GameView extends SurfaceView implements Runnable
                     p_arr.get(p_arr.size() - 1).vx = (float) (-1 * Math.cos(angle_of_touch) * p_arr.get(p_arr.size() - 1).v);
                     p_arr.get(p_arr.size() - 1).v0y = (float) (-1 * Math.sin(angle_of_touch) * p_arr.get(p_arr.size() - 1).v);
                     // TODO: why -1 * ?
-                }
+
+                    }
 
                 break;
 
