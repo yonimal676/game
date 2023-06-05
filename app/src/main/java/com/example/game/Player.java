@@ -15,17 +15,20 @@ public class Player
     //player
     float x,y;
     float width, height;
+    final float meter; // for graspable ratio.
     float midX, midY;
+    Bitmap bobNormalBitmap;
+    Bitmap bobThrowingBitmap;
+
     byte hearts;
     byte maxHearts;
+    Bitmap heartBitmap;
+    Bitmap emptyHeartBitmap;
+
     byte ammo;
     byte maxAmmo;
     int iterationForAmmoRegeneration;
     int AmmoRegenerationPace;
-    Bitmap bobNormalBitmap;
-    Bitmap bobThrowingBitmap;
-    Bitmap heartBitmap;
-    Bitmap emptyHeartBitmap;
     Bitmap ammoBitmap;
     Bitmap emptyAmmoBitmap;
 
@@ -33,10 +36,16 @@ public class Player
 
 
 
-    public Player (Resources res, int screenX, int screenY, int groundHeight)
+
+
+
+    public Player (Resources res, int screenX, int screenY, int groundHeight, byte metersInTheScreen)
     {
-        width = screenX / 121f * 5; // 107 x 121 are the proportions of the character
-        height = screenX / 107f * 5; // discussion: screen ratios #21
+
+        meter = (float) screenX / metersInTheScreen;
+
+        width = meter;
+        height = meter * 1.2f; // discussion: screen ratios #21
 
         x = screenX / 20f;
         y = (short) (screenY - height - groundHeight);
@@ -76,7 +85,7 @@ public class Player
 
         maxAmmo = 3;
         ammo = 3;
-        AmmoRegenerationPace = 50;
+        AmmoRegenerationPace = 10;
         iterationForAmmoRegeneration = AmmoRegenerationPace;
 
         ammoBitmap = BitmapFactory.decodeResource(res, R.drawable.projectile);
@@ -87,6 +96,7 @@ public class Player
 
 
 
+        iteration_of_throw = -1; // = "null"
 
     }
 
@@ -96,6 +106,23 @@ public class Player
         this.aimY = y;
     }
 
+
+
+    public void regenerateAmmo ()
+    {
+        if (ammo < maxAmmo) //needs filling
+        {
+            if (iterationForAmmoRegeneration == 0) {// regen now
+                ammo++;
+                iterationForAmmoRegeneration = AmmoRegenerationPace; // regen once at a time
+            }
+            else
+                iterationForAmmoRegeneration--; // countdown till regen
+        }
+
+        else //filling unneeded
+            iterationForAmmoRegeneration = AmmoRegenerationPace;
+    }
 
 
 

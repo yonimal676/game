@@ -12,7 +12,6 @@ public class Projectile
     //projectile
     float initialX, initialY;  // acts as the (0,0) point relative to the ball.
     float x, y;
-    float prevX, prevY;
     short width, height;
     Bitmap projectileBitmap;
     Bitmap transparentBitmap;
@@ -23,12 +22,13 @@ public class Projectile
     float time;
     float GRAVITY;
     boolean isThrown;
-    final float ratioMtoPX; // discussion: Pixels to centimeters #19 || x pixels to meters.
+    final float meter; // for graspable ratio.
 
 
     ArrayList<Float> dotArrayListX;
     ArrayList<Float> dotArrayListY;
 
+    boolean toRemove; // for removal from the array list in GameView
     byte damage;
 
 
@@ -38,13 +38,15 @@ public class Projectile
     /* TODO: don't remove the projectile even when needed so you can still see the path, instead make the bitmap null, and damage = 0 */
 
 
-    public Projectile (Resources res, float screenX, float screenY, float aimX, float aimY, float groundHeight)
+    public Projectile (Resources res, int screenX, int screenY, float aimX, float aimY, float groundHeight, byte metersInTheScreen)
     {
         this.screenX = screenX;
         this.screenY = screenY;
         this.groundHeight = groundHeight;
+        toRemove = false;
 
-        ratioMtoPX = screenX / 14; // TODO: remember that if you scale this up, the ball will NOT move in the same ratio!!
+
+        meter = (float) screenX / metersInTheScreen; // TODO: remember that if you scale this up, the ball will NOT move in the same ratio!!
 
         isThrown = false;
 
@@ -52,11 +54,8 @@ public class Projectile
         y = aimY;
 
 
-        prevX = x;
-        prevY = y;
-
-        width = (short) (0.2 * ratioMtoPX);
-        height = (short) (0.2 * ratioMtoPX);
+        width = (short) (0.35 * meter);
+        height = (short) (0.35 * meter);
 
 
         // Draw the ball:
@@ -70,8 +69,8 @@ public class Projectile
 
 
         // Physics-related stuff: todo -> NOT NEGATIVE GRAVITY,  also:   ball.vy = ball.v0y + ball.GRAVITY * ball.time;
-        GRAVITY =  9.8f * 6.3f * ratioMtoPX; // should be negative due to the earth's gravity pulling it downwards.
-        v = 21 * 1.4f * ratioMtoPX; // also max pull | meters per second.
+        GRAVITY =  9.8f * 6.3f * meter; // should be negative due to the earth's gravity pulling it downwards.
+        v = 25 * 1.4f * meter; // also max pull | meters per second.
         time = 0;
 
 
@@ -96,6 +95,29 @@ public class Projectile
     The atan() function returns a value in the range -π/2 to π/2 radians.
     The atan2() function returns a value in the range -π to π radians.
  */
+
+
+
+
+    public void didHit (int groundHeight, Enemy enemy)
+    {
+
+        // hit enemy
+        if (enemy != null)
+            if (x + width >= enemy.x && x <= enemy.x + enemy.width && y + height >= enemy.y && y <= enemy.y + enemy.height)
+            {
+                enemy.hearts -= damage;
+                toRemove = true;
+                return;
+            }
+
+
+        // hit ground
+        if ( y + height >= screenY - groundHeight)
+            toRemove = true;
+
+
+    }
 
 
 

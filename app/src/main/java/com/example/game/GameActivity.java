@@ -6,9 +6,11 @@ import android.view.WindowManager;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class GameActivity extends AppCompatActivity {
+public class GameActivity extends AppCompatActivity
+{
 
     GameView gameView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)

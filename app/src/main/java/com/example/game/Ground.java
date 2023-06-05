@@ -6,21 +6,21 @@ import android.graphics.BitmapFactory;
 
 public class Ground
 {
-    short x,y;
-    short width, height;
+    int x,y;
+    int width, height;
 
-    float ratioPXtoM ; // discussion: Pixels to centimeters #19 || x pixels to meters.
+    final float meter; // for graspable ratio.
 
     Bitmap groundBitmap;
 
 
-    public Ground(Resources res, int screenX, int screenY)
+    public Ground(Resources res, int screenX, int screenY, byte metersInTheScreen)
     {
 
-        ratioPXtoM = screenX / 14f;
+        meter = (float) screenX / metersInTheScreen;
 
         width = (short) screenX;
-        height = (short) (0.4 * ratioPXtoM); // discussion: screen ratios #21
+        height = (short) (0.4 * meter); // discussion: screen ratios #21
 
         x = 0;
         y = (short) (screenY - height);
