@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "273544925952",
+    "project_id": "game-ddaad",
+    "storage_bucket": "game-ddaad.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:273544925952:android:dc870f9fbc5538761519e5",
+        "android_client_info": {
+          "package_name": "com.example.game"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "273544925952-0vmgos5ug4cuf3qq0etrorijl0n3sadd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDLQuDcigHOpZ_F2VUOWeC4iXzrbuyJNzU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "273544925952-0vmgos5ug4cuf3qq0etrorijl0n3sadd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
