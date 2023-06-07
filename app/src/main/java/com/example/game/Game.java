@@ -35,6 +35,7 @@ public class Game
     ArrayList<Float> cx_arr;
     ArrayList<Float> cy_arr;
 
+    ArrayList<ArrayList<Integer>> upgrades_costs;
 
 
     ArrayList<Float> deadX; // save x values of the killed enemies to later resurrect.
@@ -67,7 +68,7 @@ public class Game
         text_paint.setTextSize(scaledSizeInPixels);
 
 
-        circleRadius = textSize * 5; // to fit characters (no word is longer than 10 characters [5 = radius])
+        circleRadius = textSize * 10; // to fit characters (no word is longer than 10 characters [5 = radius])
         whenOutOfscreen = 0;
 
 
@@ -82,7 +83,7 @@ public class Game
         upgrades = new ArrayList<>();
         cx_arr = new ArrayList<>();
         cy_arr = new ArrayList<>();
-
+        upgrades_costs = new ArrayList<>();
 
 
 
@@ -93,7 +94,6 @@ public class Game
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2, "regular",0));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "regular",0));
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "ghost",0));
 
 
 
@@ -101,7 +101,7 @@ public class Game
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2, "regular",0));
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "regular",0));
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4, "ghost",0));
-        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 7, "ghost",0));
+        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 5, "ghost",0));
 
 
 
@@ -110,12 +110,16 @@ public class Game
 
 
         waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
+        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1.3f, "regular",0));
         waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1.5f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2, "regular",0));
         waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2.2f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3.4f, "regular",0));
+        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2.5f, "regular",0));
+        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2.8f, "regular",0));
         waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4, "regular",0));
+        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3.4f, "regular",0));
+        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4.2f, "regular",0));
+        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4.5f, "regular",0));
+        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4.8f, "regular",0));
         waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 5, "regular",0));
         waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 5.5f, "regular",0));
         waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 5.8f, "regular",0));
@@ -124,11 +128,24 @@ public class Game
         waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 7, "regular",0));
 
 
-        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
-        waves.get(5).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
+        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "giant",0));
+        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2, "giant",0));
+        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "giant",0));
+        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4, "giant",0));
+
+
+
+        waves.get(5).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "crusader",0));
+
+
         waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
+
+
         waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
+
         waves.get(8).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
+
+
         waves.get(9).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
 
 
@@ -140,95 +157,58 @@ public class Game
         for (int i = 1; i <= 10; i++)
             upgrades.add(new ArrayList<>());
 
+        for (int i = 1; i <= 10; i++)
+            upgrades_costs.add(new ArrayList<>());
+
+
+        upgrades_costs.get(0).add(25);
+        upgrades_costs.get(0).add(25);
+        upgrades_costs.get(0).add(25);
+
+        /*upgrades_costs.get(1).add(25);
+        upgrades_costs.get(1).add(25);
+        upgrades_costs.get(1).add(25);
+        upgrades_costs.get(1).add(25);
+        upgrades_costs.get(1).add(25);
+*/
+
+
         upgrades.get(0).add("Health");
         upgrades.get(0).add("Heal");
         upgrades.get(0).add("Recharge");
 
 
 
-        upgrades.get(1).add("hmm");
-        upgrades.get(1).add("1");
-        upgrades.get(1).add("2");
 
 
 
-        upgrades.get(2).add("word");
-        upgrades.get(3).add("word");
-        upgrades.get(4).add("word");
-        upgrades.get(5).add("word");
-        upgrades.get(6).add("word");
-        upgrades.get(7).add("word");
-        upgrades.get(8).add("word");
-        upgrades.get(9).add("word");
+        upgrades.get(1).add("Damage");
+        upgrades.get(1).add("Health");
+        upgrades.get(1).add("Health");
 
 
 
-
-
-
-
-
-
-
-    }
+        upgrades.get(2).add("Recharge");
+        upgrades.get(3).add("Recharge");
+        upgrades.get(4).add("Recharge");
+        upgrades.get(5).add("Recharge");
+        upgrades.get(6).add("Recharge");
+        upgrades.get(7).add("Recharge");
+        upgrades.get(8).add("Recharge");
+        upgrades.get(9).add("Recharge");
 
 
 
 
 
 
-    public void afterWaveScreen (int screenX, int screenY, Canvas canvas, int currentWave)
-    {
-
-            // draw upgrade bubbles;
-            for (int i = 0; i < upgrades.get(currentWave).size(); i++)
-            {
-                if (screenX / 8f + (circleRadius * 3 * i) < screenX) // circles in the screen (upper)
-                {
-                    cx = screenX / 8f + (circleRadius * 3 * i);
-                    cy = screenY / 3f;
-                }
-                else // (lower)
-                {
-                    if (whenOutOfscreen == 0)
-                        whenOutOfscreen = i;
-
-                    cx = screenX / 8f + (circleRadius * 3 * (i - whenOutOfscreen));
-
-                    cy = 2 * screenY / 3f;
-                }
-
-                cx_arr.add(cx);
-                cy_arr.add(cy); // for clicking
-
-
-                canvas.drawCircle(cx, cy, circleRadius, circle_paint); // x,y are the middle points! not up-left!!
-
-                canvas.drawText(upgrades.get(currentWave).get(i),
-                        cx - circleRadius + (circleRadius*2 - upgrades.get(currentWave).get(i).length() * textSize)/2f,
-                        cy + textSize/2f, text_paint);
-
-                // cx - circleRadius + (circleRadius*2 - upgrades.get(currentWave).get(i).length() * scaledSizeInPixels)/2
-
-
-                canvas.drawText("xp: ", screenX/2f, 50, text_paint);
-
-
-
-                //continue button
-                Ccx = screenX - circleRadius * 2;
-                Ccy = screenY - circleRadius * 2;
-                circle_paint.setColor(Color.argb(150, 220, 100, 80));
-                canvas.drawCircle(Ccx, Ccy, circleRadius, circle_paint);
-                circle_paint.setColor(Color.argb(150, 78, 166, 135));
-
-                canvas.drawText("continue", Ccx - circleRadius + (circleRadius*2 - "continue".length() * textSize)/2f, Ccy + textSize/2f, text_paint);
-
-
-        } // circles 💥😍❤️✔️
 
 
     }
+
+
+
+
 
 
 

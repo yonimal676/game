@@ -15,23 +15,33 @@ public class Enemy
     float x, y;
     float width, height;
     int hearts;
-    int speed; // number of pixels per iteration
+    float speed; // number of pixels per iteration
     Bitmap enemyBitmap;
     Bitmap heartBitmap;
     int[] randomRegularBitmap = {R.drawable.enemy1, R.drawable.enemy2, R.drawable.enemy3, R.drawable.enemy4};
 
+    int xp;
 
     final float meter; // for graspable ratio.
     int groundHeight;
 
+    String type;
+    boolean shielded;
+    int shield_counter;
+    int added_damage;
 
 
 
     public Enemy(Resources res, int screenX, int screenY, int groundHeight, byte metersInTheScreen, float relativeInWave, String type, float deadX)
     {
+        this.type = type;
+        this.groundHeight = groundHeight;
 
         meter = (float) screenX / metersInTheScreen; // TODO: remember that if you scale this up, the ball will NOT move in the same ratio!!
-        this.groundHeight = groundHeight;
+
+        shield_counter = 100;
+        shielded = false;
+
 
         if (type.equals("regular")) {
             width = meter;
@@ -40,7 +50,8 @@ public class Enemy
             hearts = 1;
             x = screenX - width + (relativeInWave * width * 1.5f);
             y = screenY - groundHeight - height;
-            speed = 5; // pixels per iteration
+            speed = 800/meter; // pixels per iteration
+            added_damage = 0;
 
 
             Random random = new Random();
@@ -51,6 +62,8 @@ public class Enemy
 
             enemyBitmap = BitmapFactory.decodeResource(res, randomImageResource);
             enemyBitmap = Bitmap.createScaledBitmap(enemyBitmap, (int) width, (int) height, false);
+
+            xp = 10;
         }
 
         if (type.equals("ghost")) {
@@ -59,14 +72,18 @@ public class Enemy
             height = meter * 1.2f;
 
             hearts = 2;
+            added_damage = 0;
 
             x = screenX - width + (relativeInWave * width * 1.5f);
             y = screenY - groundHeight - height;
-            speed = 8; // pixels per iteration
+
+            speed = 1700/meter; // pixels per iteration
 
 
             enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.ghost);
             enemyBitmap = Bitmap.createScaledBitmap(enemyBitmap, (int) width, (int) height, false);
+
+            xp = 20;
         }
 
 
@@ -76,15 +93,22 @@ public class Enemy
             width = meter * 1.75f;
             height = meter * 2f;
 
-            hearts = 5;
+            hearts = 10;
+
+            added_damage = 0;
+
 
             x = screenX - width + (relativeInWave * width * 1.5f);
             y = screenY - groundHeight - height;
-            speed = 3; // pixels per iteration
+
+
+            speed = 800/meter; // pixels per iteration
 
 
             enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.giant);
             enemyBitmap = Bitmap.createScaledBitmap(enemyBitmap, (int) width, (int) height, false);
+
+            xp = 20;
         }
 
 
@@ -100,14 +124,38 @@ public class Enemy
             x = deadX;
             y = screenY - groundHeight - height;
 
-            speed = 2; // pixels per iteration
+            speed = 500/meter; // pixels per iteration
 
 
             enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.skeleton);
             enemyBitmap = Bitmap.createScaledBitmap(enemyBitmap, (int) width, (int) height, false);
+
+            xp = 0;
         }
 
 
+
+        if (type.equals("crusader"))
+        {
+            width = meter * 1.2f;
+            height = meter * 1.6f;
+
+            hearts = 5;
+
+            added_damage = 0;
+
+
+            x = screenX - width + (relativeInWave * width * 1.5f);
+            y = screenY - groundHeight - height;
+
+            speed = 500/meter; // pixels per iteration
+
+
+            enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.crusader_shielded);
+            enemyBitmap = Bitmap.createScaledBitmap(enemyBitmap, (int) width, (int) height, false);
+
+            xp = 70;
+        }
 
 
 

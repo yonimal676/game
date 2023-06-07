@@ -13,6 +13,8 @@ public class Ground
 
     Bitmap groundBitmap;
 
+    Bitmap backgroundBitmap;
+
 
     public Ground(Resources res, int screenX, int screenY, byte metersInTheScreen)
     {
@@ -29,6 +31,8 @@ public class Ground
         groundBitmap = BitmapFactory.decodeResource(res, R.drawable.ground);
         groundBitmap = Bitmap.createScaledBitmap(groundBitmap, width, height, false);
 
+        backgroundBitmap = BitmapFactory.decodeResource(res, R.drawable.background);
+        backgroundBitmap = Bitmap.createScaledBitmap(backgroundBitmap, screenX, screenY, false);
 
     }//(⌐■_■)✧
 

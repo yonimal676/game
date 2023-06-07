@@ -106,7 +106,17 @@ public class Projectile
         if (enemy != null)
             if (x + width >= enemy.x && x <= enemy.x + enemy.width && y + height >= enemy.y && y <= enemy.y + enemy.height)
             {
-                enemy.hearts -= damage;
+                if (enemy.type.equals("crusader"))
+                {
+                    if ( ! enemy.shielded) {
+                        enemy.hearts -= damage;
+                        enemy.shielded = true;
+                    }
+                }
+
+                else
+                    enemy.hearts -= damage;
+
                 toRemove = true;
                 return;
             }
@@ -119,7 +129,14 @@ public class Projectile
 
     }
 
+    public void physics () // issue: physics #25
+    {
 
+        vy = v0y + GRAVITY * time;
+
+        x = initialX + vx * time; // x0 + Vx * t
+        y = initialY + vy * time - GRAVITY * time * time / 2; // y0 + Vy * t - g * t² / 2
+    }
 
 
 }

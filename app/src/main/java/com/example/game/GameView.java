@@ -12,13 +12,16 @@
 package com.example.game;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 
+
+import com.google.firebase.annotations.concurrent.Background;
 
 import java.util.ArrayList;
 
@@ -54,6 +57,8 @@ public class GameView extends SurfaceView implements Runnable
     private ArrayList<Projectile> p_arr;
     private float px, py;
 
+    private float meter;
+
 
 
 
@@ -68,10 +73,10 @@ public class GameView extends SurfaceView implements Runnable
         this.screenY = screenY;
 
         metersInScreen = 25; // screenX / 25 will be one meter
+        meter = (float) screenX / metersInScreen; // TODO: remember that if you scale this up, the ball will NOT move in the same ratio!!
 
         isPlaying = true;
 
-        background = new Background(getResources(), screenX, screenY, metersInScreen);
         ground = new Ground(getResources(), screenX, screenY, metersInScreen);
         player = new Player(getResources(), screenX, screenY, ground.height, metersInScreen);
         game = new Game(getResources(), screenX, screenY, ground.height, metersInScreen);
@@ -133,9 +138,10 @@ public class GameView extends SurfaceView implements Runnable
                 enemy.x -= enemy.speed;
 
 
+                // enemy reaches player
                 if (enemy.x <= player.x + player.width)
                 {
-                    player.hearts -= enemy.hearts;
+                    player.hearts -= (enemy.hearts + enemy.added_damage);
                     game.waves.get(game.currentWave).remove(enemy);
                 }
 
@@ -146,44 +152,73 @@ public class GameView extends SurfaceView implements Runnable
 
 
 
+                if (enemy.type.equals("crusader"))
+                {
+                    if (enemy.shield_counter > 0)
+                        enemy.shield_counter--;
+                    else
+                        enemy.shield_counter = 100;
+
+                    if (enemy.shield_counter == 0)
+                        enemy.shielded = false;
+
+
+                    if (!enemy.shielded)
+                    {
+                        enemy.speed = 1500/meter;
+                        enemy.added_damage = 3;
+
+                        enemy.enemyBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.crusader_attack);
+                        enemy.enemyBitmap = Bitmap.createScaledBitmap(enemy.enemyBitmap, (int) enemy.width * 2, (int) enemy.height, false);
+                    }
+                    else {
+                        enemy.speed = 500/meter;
+                        enemy.added_damage = 0;
+
+                        enemy.enemyBitmap = BitmapFactory.decodeResource(getResources(), R.drawable.crusader_shielded);
+                        enemy.enemyBitmap = Bitmap.createScaledBitmap(enemy.enemyBitmap, (int) enemy.width, (int) enemy.height, false);
+                    }
+                }
+
+
+
                 for (int skeleton_index = 0; skeleton_index < game.skeletons.size(); skeleton_index++)
                 {
 
                     Enemy skeleton = game.skeletons.get(skeleton_index); // temp
 
-
                     if (skeleton.x + skeleton.width >= enemy.x && skeleton.x + skeleton.width <= enemy.x + enemy.width)
                     {
-                        if (enemy.hearts > skeleton.hearts) {
+                        if (enemy.hearts > skeleton.hearts)
+                        {
                             enemy.hearts -= skeleton.hearts;
-                            skeleton.hearts = 0;
+                            game.skeletons.remove(skeleton);
                         }
 
-                        else if (enemy.hearts < skeleton.hearts) {
-                            skeleton.hearts -= enemy.hearts;
+                        else if (enemy.hearts < skeleton.hearts)
+                        {
+                            skeleton.hearts -= (enemy.hearts + enemy.added_damage);
                             enemy.hearts = 0;
+//                            game.waves.get(game.currentWave).get(enemy);
                         }
 
                         else {
                             skeleton.hearts = 0;
                             enemy.hearts = 0;
+                            game.skeletons.remove(skeleton);
                         }
                     }
 
 
-
-                    if (skeleton.hearts == 0)
-                    {
-                        game.skeletons.remove(skeleton);
-
-                    }
-
                 }
 
                 //check life for removal
-                if (enemy.hearts == 0) {
+                if (enemy.hearts <= 0)
+                {
                     game.deadX.add(enemy.x);
                     game.waves.get(game.currentWave).remove(enemy);
+
+                    player.xp += enemy.xp;
                 }
 
             } // enemies
@@ -204,28 +239,27 @@ public class GameView extends SurfaceView implements Runnable
             game.didResurrect = false;
 
 
-//        if ( game.didResurrect )
+
+        for(int skeleton_index = 0; skeleton_index < game.skeletons.size(); skeleton_index++)
         {
-            for(int skeleton_index = 0; skeleton_index < game.skeletons.size(); skeleton_index++)
+
+            Enemy skeleton = game.skeletons.get(skeleton_index); // temp
+
+            skeleton.x += skeleton.speed; // starts at deadX
+
+
+            // because you can kill skeletons too.
+            for (int i = 0; i < p_arr.size(); i++)
             {
+                p_arr.get(i).didHit(ground.height, skeleton);
 
-                Enemy skeleton = game.skeletons.get(skeleton_index); // temp
+                if (p_arr.get(i).toRemove)
+                    p_arr.remove(p_arr.get(i));
 
-                skeleton.x += skeleton.speed; // starts at deadX
+                if (skeleton.hearts <= 0)
+                    game.skeletons.remove(skeleton);
 
-
-                // because you can kill skeletons too.
-                for (int i = 0; i < p_arr.size(); i++)
-                {
-                    p_arr.get(i).didHit(ground.height, skeleton);
-
-                    if (p_arr.get(i).toRemove)
-                        p_arr.remove(p_arr.get(i));
-
-                    if (skeleton.hearts <= 0)
-                        game.skeletons.remove(skeleton_index);
-                    // play minecraft skeleton death noise
-                }
+                // play minecraft skeleton death noise
             }
         } //resurrection
 
@@ -238,7 +272,7 @@ public class GameView extends SurfaceView implements Runnable
 
             if (p_arr.get(i).isThrown)
             {
-                physics(p_arr.get(i));
+                p_arr.get(i).physics();
 
 
                 // limit dot arrays
@@ -249,14 +283,7 @@ public class GameView extends SurfaceView implements Runnable
                 p_arr.get(i).dotArrayListY.add(p_arr.get(i).y + p_arr.get(i).height / 2);
                 if (p_arr.get(i).dotArrayListY.size() > 15)
                     p_arr.get(i).dotArrayListY.remove(0);
-/*                    // if all the dots of a projectile are gone, remove the projectile completely.
-                if (toRemove(p_arr.get(i).dotArrayListX.get(0),   p_arr.get(i).dotArrayListY.get(0), p_arr.get(i).height, null))
-                    p_arr.remove(p_arr.get(i));
-                boolean flag = false;
-                for (int j = 0; j < p_arr.get(i).dotArrayListX.size(); j++)
-                {
-                    if (p_arr.get(i).dotArrayListX.get())
-                }*/
+
             }
 
             if (p_arr.get(i).toRemove)
@@ -268,29 +295,24 @@ public class GameView extends SurfaceView implements Runnable
 
         // wave format (update / stop)
         if (game.waves.get(game.currentWave).isEmpty())
-        {
             game.isInWave = false;
 
-            checkUpgrades(); // don't show irrelevant upgrades
+        else
+            game.isInWave = true;
 
+
+
+        if (! game.isInWave)
             if (game.didContinue)
             {
                 game.currentWave++;
                 game.didContinue = false;
             }
 
-//            p_arr.clear(); <- unnecessary removal of projectiles at the end of a wave.
-        }
-        else
-            game.isInWave = true;
-
-
-
-
 
 
         if ( player.hearts == 0 )
-            isPlaying = false;
+            pause();
 
 
 
@@ -299,14 +321,7 @@ public class GameView extends SurfaceView implements Runnable
 
 
 
-    public void physics(Projectile p) // issue: physics #25
-    {
 
-        p.vy = p.v0y + p.GRAVITY * p.time;
-
-        p.x = p.initialX + p.vx * p.time; // x0 + Vx * t
-        p.y = p.initialY + p.vy * p.time - p.GRAVITY * p.time * p.time / 2; // y0 + Vy * t - g * t² / 2
-    }
 
 
 
@@ -321,20 +336,20 @@ public class GameView extends SurfaceView implements Runnable
 
 
             //background
-            screenCanvas.drawBitmap(background.backgroundBitmap, 0, 0, paint);//background
+            screenCanvas.drawBitmap(ground.backgroundBitmap, 0, 0, paint);//background
 
+            // wave number
             screenCanvas.drawText((game.currentWave + 1) + " - " + 10, screenX - (15 * getResources().getDisplayMetrics().scaledDensity) * 7 , player.meter, paint);
 
 
+            // show skulls to later resurrect
+            for (int i = 0; i < game.deadX.size(); i++)
+                screenCanvas.drawBitmap(game.skullBitmap, game.deadX.get(i), screenY - ground.height - screenY/ 40f, paint);
 
-            if ( ! game.didResurrect)
-                for (int i = 0; i < game.deadX.size(); i++)
-                    screenCanvas.drawBitmap(game.skullBitmap, game.deadX.get(i), screenY - ground.height - screenY/ 40f, paint);
 
-
-            else
-                for (int i = 0; i < game.skeletons.size(); i++)
-                    screenCanvas.drawBitmap(game.skeletons.get(i).enemyBitmap, game.skeletons.get(i).x, screenY - ground.height - game.skeletons.get(i).height, paint);
+            // only when resurrected skeletons would be added
+            for (int i = 0; i < game.skeletons.size(); i++)
+                screenCanvas.drawBitmap(game.skeletons.get(i).enemyBitmap, game.skeletons.get(i).x, screenY - ground.height - game.skeletons.get(i).height, paint);
 
 
 
@@ -347,7 +362,7 @@ public class GameView extends SurfaceView implements Runnable
                     for (short j = 0; j < p_arr.get(i).dotArrayListX.size() - 2; j++) // draw *all* the dots of *all* projectiles | -2 for delay
                         screenCanvas.drawCircle(p_arr.get(i).dotArrayListX.get(j), p_arr.get(i).dotArrayListY.get(j),
                                 p_arr.get(i).width / 40f * j + 1, paint);
-                    // cool idea:  * i * i when boosted
+                    // cool idea:  * i * i when damage is boosted
 
 
                     screenCanvas.drawBitmap(p_arr.get(i).projectileBitmap, p_arr.get(i).x, p_arr.get(i).y, paint);//ball
@@ -360,7 +375,6 @@ public class GameView extends SurfaceView implements Runnable
 
             //cross-hair
             screenCanvas.drawBitmap(player.crosshairBitmap, player.aimX, player.aimY, paint);//ball
-
 
 
 
@@ -377,34 +391,27 @@ public class GameView extends SurfaceView implements Runnable
 
 
 
-            // heart counter
+            // heart system
             for (int i = 1; i <= player.maxHearts; i++)
-            {
                 if (i > player.hearts)
                     screenCanvas.drawBitmap(player.emptyHeartBitmap, i * player.crosshairSize, player.crosshairSize, paint);
                 else
                     screenCanvas.drawBitmap(player.heartBitmap, i * player.crosshairSize, player.crosshairSize, paint);
-            }
 
-
-            // ammo counter
+            // ammo system
             for (int i = 1; i <= player.maxAmmo; i++)
-            {
                 if (i > player.ammo)
                     screenCanvas.drawBitmap(player.emptyAmmoBitmap, i * player.crosshairSize, player.crosshairSize * 2.5f, paint);
                 else
                     screenCanvas.drawBitmap(player.ammoBitmap, i * player.crosshairSize, player.crosshairSize * 2.5f, paint);
 
-            }
 
 
-
-
+            // display enemies, hearts, skeletons, resurrect button
             if (game.isInWave)
             {
                 for (int enemy_index = 0; enemy_index < game.waves.get(game.currentWave).size(); enemy_index++) // game in game
                 {
-
                     Enemy enemy = game.waves.get(game.currentWave).get(enemy_index);
 
                     screenCanvas.drawBitmap(enemy.enemyBitmap, enemy.x, enemy.y, paint);
@@ -419,13 +426,15 @@ public class GameView extends SurfaceView implements Runnable
                                 ((game.circleRadius*0.7f*2 - ("Resurrect".length() * paint1.getTextSize())))/2,
                         screenY/10f + paint1.getTextSize()/2, paint1);
 
-
             }
+
+
 
             else // -> between waves
             {
-                game.afterWaveScreen(screenX, screenY, screenCanvas, game.currentWave);
-                screenCanvas.drawText("(i)  " + game.explainUpgrade, screenX/2f, player.y, paint);
+                checkUpgrades();                            // don't show irrelevant upgrades
+                afterWaveScreen(screenCanvas, player.xp);   // show upgrades and stuff
+                screenCanvas.drawText("(i)  " + game.explainUpgrade, screenX/2f, player.y, paint); // explain upgrades
             }
 
 
@@ -483,33 +492,33 @@ public class GameView extends SurfaceView implements Runnable
                     // I need to put this ?? because if you spam there's a bug caused by the delay in ACTION_DOWN and ACTION_UP
 
 
-                    if (!p_arr.isEmpty())
+                    if (!p_arr.isEmpty()) {
                         angle_of_touch = p_arr.get(p_arr.size() - 1).findAngle(event.getX(), event.getY(), player.midX, player.midY);
 
 
-                    quarterOfThrow();
+                        quarterOfThrow();
 
 
-                    px = (float) Math.abs(Math.cos(angle_of_touch) * player.height);
-                    py = (float) Math.abs(Math.sin(angle_of_touch) * player.height);
-                    //  perpendicular (ניצב), x- adjacent (ליד), y - opposite (מול)
+                        px = (float) Math.abs(Math.cos(angle_of_touch) * player.height);
+                        py = (float) Math.abs(Math.sin(angle_of_touch) * player.height);
+                        //  perpendicular (ניצב), x- adjacent (ליד), y - opposite (מול)
 
 
-                    switch (quarter) {
-                        case 1:
-                            player.setCrosshairPosition(player.midX + px, player.midY - py);
-                            break;
-                        case 2:
-                            player.setCrosshairPosition(player.midX - px, player.midY - py);
-                            break;
-                        case 3:
-                            player.setCrosshairPosition(player.midX - px, player.midY + py);
-                            break;
-                        case 4:
-                            player.setCrosshairPosition(player.midX + px, player.midY + py);
-                            break;
+                        switch (quarter) {
+                            case 1:
+                                player.setCrosshairPosition(player.midX + px, player.midY - py);
+                                break;
+                            case 2:
+                                player.setCrosshairPosition(player.midX - px, player.midY - py);
+                                break;
+                            case 3:
+                                player.setCrosshairPosition(player.midX - px, player.midY + py);
+                                break;
+                            case 4:
+                                player.setCrosshairPosition(player.midX + px, player.midY + py);
+                                break;
+                        }
                     }
-
                 }
 
 
@@ -537,32 +546,32 @@ public class GameView extends SurfaceView implements Runnable
 
                 if ( game.isInWave )
                 {
-
-                    if (!p_arr.isEmpty())
+                    // calc crosshair position
+                    if (!p_arr.isEmpty()) {
                         angle_of_touch = p_arr.get(p_arr.size() - 1).findAngle(event.getX(), event.getY(), player.midX, player.midY);
 
-                    quarterOfThrow();
+                        quarterOfThrow();
 
-                    px = (float) Math.abs(Math.cos(angle_of_touch) * player.height);
-                    py = (float) Math.abs(Math.sin(angle_of_touch) * player.height);
-                    //  perpendicular (ניצב), x- adjacent (ליד), y - opposite (מול)
+                        px = (float) Math.abs(Math.cos(angle_of_touch) * player.height);
+                        py = (float) Math.abs(Math.sin(angle_of_touch) * player.height);
+                        //  perpendicular (ניצב), x- adjacent (ליד), y - opposite (מול)
 
 
-                    switch (quarter) {
-                        case 1:
-                            player.setCrosshairPosition(player.midX + px, player.midY - py);
-                            break;
-                        case 2:
-                            player.setCrosshairPosition(player.midX - px, player.midY - py);
-                            break;
-                        case 3:
-                            player.setCrosshairPosition(player.midX - px, player.midY + py);
-                            break;
-                        case 4:
-                            player.setCrosshairPosition(player.midX + px, player.midY + py);
-                            break;
+                        switch (quarter) {
+                            case 1:
+                                player.setCrosshairPosition(player.midX + px, player.midY - py);
+                                break;
+                            case 2:
+                                player.setCrosshairPosition(player.midX - px, player.midY - py);
+                                break;
+                            case 3:
+                                player.setCrosshairPosition(player.midX - px, player.midY + py);
+                                break;
+                            case 4:
+                                player.setCrosshairPosition(player.midX + px, player.midY + py);
+                                break;
+                        }
                     }
-
                 }
 
                 //explaining system
@@ -571,8 +580,6 @@ public class GameView extends SurfaceView implements Runnable
                         if (event.getX() >= game.cx_arr.get(i) - game.circleRadius && event.getX() <= game.cx_arr.get(i) + game.circleRadius
                                 && event.getY() >= game.cy_arr.get(i) - game.circleRadius && event.getY() <= game.cy_arr.get(i) + game.circleRadius)
                             explainUpgrades(i);
-
-
 
                 break;
 
@@ -584,13 +591,13 @@ public class GameView extends SurfaceView implements Runnable
 
                 if ( game.isInWave )
                 {
-
-
-                    if (event.getX() >= screenX/2f - game.circleRadius*0.7f/3 && event.getX() <= screenX/2f - game.circleRadius*0.7f
-                            && event.getY() >= screenY/10f && event.getY() <= screenY/10f + game.circleRadius * 0.7f * 2)
+                    // pressed resurrection button
+                    if (event.getX() >= screenX/2f - game.circleRadius*0.7f && event.getX() <= screenX/2f + game.circleRadius*0.7f
+                            && event.getY() >= screenY/10f - game.circleRadius*0.7f && event.getY() <= screenY/10f + game.circleRadius * 0.7f)
                         resurrect();
 
 
+                    // shoot !
                     else if (player.ammo >= 1)
                     {
                         player.ammo--;
@@ -609,68 +616,129 @@ public class GameView extends SurfaceView implements Runnable
 
                             p_arr.get(p_arr.size() - 1).vx = (float) (-1 * Math.cos(angle_of_touch) * p_arr.get(p_arr.size() - 1).v);
                             p_arr.get(p_arr.size() - 1).v0y = (float) (-1 * Math.sin(angle_of_touch) * p_arr.get(p_arr.size() - 1).v);
-                            // TODO: why -1 * ?
                         }
                     }
                 }
 
 
-                // else -> choosing mechanism
+                // else -> upgrade choosing mechanism
                 else
                 {
+                    // continue button pressed
                     if (event.getX() >= game.Ccx - game.circleRadius && event.getX() <= game.Ccx + game.circleRadius
-                            && event.getY() >= game.Ccy - game.circleRadius && event.getY() <= game.Ccy + game.circleRadius) {
+                            && event.getY() >= game.Ccy - game.circleRadius && event.getY() <= game.Ccy + game.circleRadius)
                         game.didContinue = true;
 
-                        resurrect();
-                    }
 
-
-
-
-                    else {
+                    else  // check if pressed any upgrade
                         for (int i = 0; i < game.upgrades.get(game.currentWave).size(); i++)
-                        {
                             if (event.getX() >= game.cx_arr.get(i) - game.circleRadius && event.getX() <= game.cx_arr.get(i) + game.circleRadius
                                     && event.getY() >= game.cy_arr.get(i) - game.circleRadius && event.getY() <= game.cy_arr.get(i) + game.circleRadius)
                                 upgrade(game.upgrades.get(game.currentWave).get(i));
-
-
-                            // game.upgrades.get(game.currentWave).get(i) -> is the string of upgrade
-                            // double click to upgrade???
-
-                        }
-                    }
                 }
 
-
-
                 break;
-
         }
         return true;
     }
 
-    public void resurrect()
+
+    public void resurrect ()
     {
+        // for each skull -> create skeleton
         for (int i = 0; i < game.deadX.size(); i++)
             game.skeletons.add(new Enemy(getResources(), screenX, screenY, ground.height, (byte) 25, 1, "skeleton", game.deadX.get(i)));
 
+        // no longer needed
         game.deadX.clear();
 
-
-        game.didResurrect = true; // to remove skeletons
-
+        // to remove skulls
+        game.didResurrect = true;
     }
+
+
 
 
     // don't show irrelevant upgrades
-    public void checkUpgrades ()
+    public void checkUpgrades()
     {
         if (player.hearts == player.maxHearts)
-            game.upgrades.get(game.currentWave).remove("Health");
+            game.upgrades.get(game.currentWave).remove("Heal");
 
     }
+
+
+    public void afterWaveScreen (Canvas canvas, int playerXP)
+    {
+
+        int howManyUnderXP = 0; // to subtract from how many we show
+
+
+        // for each wave, display upgrades
+        for (int wave_index = 0; wave_index < game.waves.size(); wave_index++)
+        {
+
+/*            for (int upgrade_index = 0; upgrade_index < upgrades.get(wave_index).size(); upgrade_index++)
+                if (playerXP < upgrades_costs.get(wave_index).get(upgrade_index))
+                    howManyUnderXP++;*/
+
+
+            // draw upgrade bubbles of wave;
+            for (int i = 0; i < game.upgrades.get(game.currentWave).size() - howManyUnderXP; i++)
+            {
+                // start x is: screenX / 8f | start x of next: a radius away from end of last one
+                // check if all the upgrades fit in the screen
+                if (screenX / 8f + (game.circleRadius * 3 * i) < screenX)
+                {
+                    game.cx = screenX / 8f + (game.circleRadius * 3 * i);
+                    game.cy = screenY / 3f;
+                }
+                else // (lower)
+                {
+                    if (game.whenOutOfscreen == 0)
+                        game.whenOutOfscreen = i;
+
+                    game.cx = screenX / 8f + (game.circleRadius * 3 * (i - game.whenOutOfscreen));
+
+                    game.cy = 2 * screenY / 3f;
+                }
+
+
+                game.cx_arr.add(game.cx);
+                game.cy_arr.add(game.cy); // for clicking
+
+                // for every circle there's a (x,y) point of the middle point
+                canvas.drawCircle(game.cx, game.cy, game.circleRadius, game.circle_paint); // x,y are the middle points! not up-left!!
+
+                // text in circle would be in the middle
+                canvas.drawText(game.upgrades.get(game.currentWave).get(i),
+                        game.cx - game.circleRadius + (game.circleRadius * 2 - game.upgrades.get(game.currentWave).get(i).length() * game.textSize) / 2f,
+                        game.cy + game.textSize / 2f, game.text_paint);
+
+
+//                canvas.drawText(upgrades_costs.get(currentWave).get(i) + "", cx, cy - circleRadius, text_paint);
+
+                canvas.drawText("xp: " + playerXP, screenX / 2f, 50, game.text_paint);
+
+            }
+
+        }
+
+
+
+        // 'continue' button
+        game.Ccx = screenX - game.circleRadius * 2;
+        game.Ccy = screenY - game.circleRadius * 2;
+
+        game.circle_paint.setColor(Color.argb(150, 220, 100, 80)); // change color
+        canvas.drawCircle(game.Ccx, game.Ccy, game.circleRadius, game.circle_paint);
+        game.circle_paint.setColor(Color.argb(150, 78, 166, 135)); // change color back
+
+        canvas.drawText("continue", game.Ccx - game.circleRadius + (game.circleRadius * 2 - "continue".length() * game.textSize) / 2f,
+                game.Ccy + game.textSize / 2f, game.text_paint);
+    }
+
+
 
     public void upgrade ( String upgrade )
     {
@@ -679,6 +747,11 @@ public class GameView extends SurfaceView implements Runnable
         if ( upgrade.equals("Health") )
         {
             player.maxHearts++;
+
+            // if players' full life - adding one to max hearts will add a heart as well
+            if (player.hearts == player.maxHearts - 1)
+                player.hearts = player.maxHearts;
+
             game.upgrades.get(game.currentWave).remove("Health");
         }
 
@@ -712,6 +785,19 @@ public class GameView extends SurfaceView implements Runnable
 
             case "Recharge":
                 game.explainUpgrade = "+1 max ammo";
+                break;
+
+            case "Damage":
+                game.explainUpgrade = "x2 damage";
+                break;
+
+            case "Freeze": // show icicle effect above the head of the entity
+                game.explainUpgrade = "20% chance to freeze enemy when hit";
+                break;
+
+            case "Bleed": // show red effect above the head of the entity
+                game.explainUpgrade = "slowly damage enemies";
+                break;
 
         }
     }

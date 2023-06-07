@@ -33,6 +33,7 @@ public class Player
     Bitmap emptyAmmoBitmap;
 
 
+    int xp;
 
 
 
@@ -41,6 +42,7 @@ public class Player
 
     public Player (Resources res, int screenX, int screenY, int groundHeight, byte metersInTheScreen)
     {
+        xp = 0;
 
         meter = (float) screenX / metersInTheScreen;
 
