@@ -21,8 +21,6 @@ import android.view.MotionEvent;
 import android.view.SurfaceView;
 
 
-import com.google.firebase.annotations.concurrent.Background;
-
 import java.util.ArrayList;
 
 
@@ -30,7 +28,7 @@ public class GameView extends SurfaceView implements Runnable
 {
 
 
-    private Background background;
+    boolean returnToMainScreen;
     private final Ground ground;
     private Player player;
     private Game game;
@@ -62,8 +60,7 @@ public class GameView extends SurfaceView implements Runnable
 
 
 
-    public GameView(GameActivity activity, short screenX, short screenY)
-    {
+    public GameView(GameActivity activity, short screenX, short screenY) {
         super(activity);
 
         this.activity = activity;
@@ -90,24 +87,20 @@ public class GameView extends SurfaceView implements Runnable
         paint.setTextSize(15 * getResources().getDisplayMetrics().scaledDensity);
 
 
-
         paint1 = new Paint();
         paint1.setColor(Color.BLACK);
         paint1.setTextSize(10 * getResources().getDisplayMetrics().scaledDensity);
 
 
-
         iteration = 0;
         sleep_millis = 10;
-
-
-
-
+        returnToMainScreen = false;
     }
 
 
     @Override
-    public void run() {
+    public void run()
+    {
         while (isPlaying) // run only if playing.
         {
             sleep();//To render motion (FPS).
@@ -116,6 +109,8 @@ public class GameView extends SurfaceView implements Runnable
 
             iteration++;
         }
+
+        returnToMainScreen = true;
     }
 
 
@@ -312,8 +307,7 @@ public class GameView extends SurfaceView implements Runnable
 
 
         if ( player.hearts == 0 )
-            pause();
-
+            isPlaying = false;
 
 
     }
@@ -432,9 +426,14 @@ public class GameView extends SurfaceView implements Runnable
 
             else // -> between waves
             {
-                checkUpgrades();                            // don't show irrelevant upgrades
-                afterWaveScreen(screenCanvas, player.xp);   // show upgrades and stuff
-                screenCanvas.drawText("(i)  " + game.explainUpgrade, screenX/2f, player.y, paint); // explain upgrades
+                if (player.hearts <= 0)
+                    isPlaying = false;
+
+                else {
+                    checkUpgrades();                            // don't show irrelevant upgrades
+                    afterWaveScreen(screenCanvas, player.xp);   // show upgrades and stuff
+                    screenCanvas.drawText("(i)  " + game.explainUpgrade, screenX / 2f, player.y, paint); // explain upgrades
+                }
             }
 
 
@@ -597,7 +596,7 @@ public class GameView extends SurfaceView implements Runnable
                         resurrect();
 
 
-                    // shoot !
+                        // shoot !
                     else if (player.ammo >= 1)
                     {
                         player.ammo--;
@@ -838,16 +837,10 @@ public class GameView extends SurfaceView implements Runnable
             thread.join(); // join = stop
             Thread.sleep(100);
 
-//            activity.PauseMenu();
         }
         catch (InterruptedException e) {e.printStackTrace();}
     }
 
-
-    void gameOver()
-    {
-        pause();
-    }
 
 
     public Context getGameActivityContext() {return gameActivityContext;}

@@ -1,21 +1,36 @@
 package com.example.game;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.Toast;
+
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import androidx.core.content.ContextCompat;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 
-public class MainActivity extends AppCompatActivity
+public class MainActivity extends AppCompatActivity implements View.OnClickListener
 {
+
+    AlertDialog.Builder builder;
+
+    FirebaseAuth mAuth;
+    FirebaseUser user;
+
+    Button userButton;
+    boolean canUserLogIn;
+
+    boolean isFirstLogin = true;
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -24,109 +39,99 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
 
+        // show in fullscreen
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN
                 , WindowManager.LayoutParams.FLAG_FULLSCREEN); // make it fullscreen
 
-
+        // start GameActivity
         findViewById(R.id.play_btn).setOnClickListener(view ->
                 startActivity(new Intent(this, GameActivity.class)));
 
 
 
-        Button openScrollButton = findViewById(R.id.story_btn);
-        openScrollButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openStoryDialog();
-            }
-        });
+        mAuth = FirebaseAuth.getInstance();
+        user = mAuth.getCurrentUser();
 
 
-        Button openDialogButton = findViewById(R.id.user_btn);
-        openDialogButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openCustomDialog();
-            }
-        });
+        if (User_dialog.user != null && User_dialog.user.isIn())
+            findViewById(R.id.user_btn).setBackground(ContextCompat.getDrawable(this, R.drawable.logout_icon));
+
+
+
+        userButton = (Button) findViewById(R.id.user_btn);
+
+
+
+        userButton.setOnClickListener(this);
+
+
+
+
+
+
+
+
+        // story alert dialog
+        builder = new AlertDialog.Builder(this);
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.story_layout, null);
+        builder.setView(dialogView);
+        builder.setNegativeButton("ok", (dialog, which) -> dialog.dismiss());
+
+
+
+
+        // if pressed button that is associated with R.id.story_btn -> openStoryDialog()
+        findViewById(R.id.story_btn).setOnClickListener(v -> openStoryDialog());
+
+
 
 
     }
-
-
 
 
 
     private void openStoryDialog ()
     {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
-
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.story_layout, null);
-
-        builder.setView(dialogView);
-        builder.setNegativeButton("ok", (dialog, which) -> dialog.dismiss());
-
         AlertDialog dialog = builder.create();
         dialog.show();
     }
 
 
-
-    private void openCustomDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Enter Values");
-
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_layout, null);
-        final EditText editText1 = dialogView.findViewById(R.id.editText1);
-        final EditText editText2 = dialogView.findViewById(R.id.editText2);
-
-
-
-        builder.setView(dialogView);
-
-
-        builder.setPositiveButton("save", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which)
-            {
-                String value1 = editText1.getText().toString();
-                String value2 = editText2.getText().toString();
-                // Do something with the entered values
-
-                MainActivity.this.addUser(value1, value2);
-
-            }
-        });
-
-
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-
-        AlertDialog dialog = builder.create();
-        dialog.show();
-    }
-
-
-
-    public void addUser (String name, String password)
+    @Override
+    public void onClick(View view)
     {
-        // add user to the database
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-
-        DatabaseReference saveUser = database.getReference("users").push();
 
 
-        User user = new User(name, password);
+        if (view == userButton)
+        {
+            if (user == null)
+            {
 
-        saveUser.setValue(user);
+                //User_dialog.user == null || ! User_dialog.user.isIn()
+                MainActivity.this.startActivity(new Intent(MainActivity.this, User_dialog.class));
 
+                findViewById(R.id.user_btn).setBackground(ContextCompat.getDrawable(this, R.drawable.logout_icon));
+
+            }
+            else {
+                FirebaseAuth.getInstance().signOut();
+                user = mAuth.getCurrentUser();
+
+                User_dialog.user = new User(false);
+
+                findViewById(R.id.user_btn).setBackground(ContextCompat.getDrawable(this, R.drawable.user_png));
+
+            }
+
+        }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        FirebaseAuth.getInstance().signOut();
+
+        Toast.makeText(this, "hi",Toast.LENGTH_SHORT).show();
+    }
 }
 

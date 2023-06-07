@@ -34,12 +34,18 @@ public class GameActivity extends AppCompatActivity
         // NOTICE! this is possible because GameView extends SurfaceView
 
 
+        if (gameView.returnToMainScreen)
+            finish();
+
     }
 
     @Override
-    protected void onPause() {
+    protected void onPause()
+    {
         super.onPause();
         gameView.pause();
+
+        finish();
     }
 
     @Override
