@@ -129,9 +129,8 @@ public class Projectile
 
     }
 
-    public void physics () // issue: physics #25
+    public void physics ()
     {
-
         vy = v0y + GRAVITY * time;
 
         x = initialX + vx * time; // x0 + Vx * t

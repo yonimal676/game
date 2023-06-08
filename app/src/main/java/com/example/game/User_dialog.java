@@ -14,6 +14,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.ktx.Firebase;
 
 public class User_dialog extends AppCompatActivity
 {
@@ -98,6 +99,8 @@ public class User_dialog extends AppCompatActivity
 //                            Toast.makeText(MainActivity.this, "Welcome!", Toast.LENGTH_SHORT).show();
 
                             user = new User(email, password);
+
+
 
                             // Close the dialog
                             Intent intent = new Intent(getApplicationContext(), MainActivity.class);

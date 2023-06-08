@@ -24,6 +24,7 @@ public class Game
     // upgrades
     Paint circle_paint;
     Paint text_paint;
+    Paint res_paint;
     int circleRadius;
     int textSize;
     float scaledSizeInPixels;
@@ -43,19 +44,24 @@ public class Game
     Bitmap skullBitmap;
     boolean didResurrect;
 
+    int canResurrect;
+
 
 
     public Game (Resources res, int screenX, int screenY, int groundHeight, byte metersInTheScreen)
     {
-        didContinue = false;
         isInWave = true;
         currentWave = 0;
         explainUpgrade = "";
         didResurrect = false;
-
+        canResurrect = 0; // can resurrect at the beginning
+        didContinue = false;
 
         circle_paint = new Paint();
-        circle_paint.setColor(Color.argb(150, 78, 166, 135));
+        circle_paint.setColor(Color.argb(100, 70, 160, 110)); // upgrades
+
+        res_paint = new Paint();
+        res_paint.setColor(Color.argb(200, 80, 210, 120)); // resurrect button
 
 
         text_paint = new Paint();
@@ -96,7 +102,6 @@ public class Game
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "regular",0));
 
 
-
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2, "regular",0));
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "regular",0));
@@ -104,48 +109,28 @@ public class Game
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 5, "ghost",0));
 
 
-
         waves.get(2).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "giant",0));
         waves.get(2).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2, "giant",0));
 
 
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1.3f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1.5f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2.2f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2.5f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2.8f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3.4f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4.2f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4.5f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4.8f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 5, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 5.5f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 5.8f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 6.2f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 6.5f, "regular",0));
-        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 7, "regular",0));
+        for (int i = 0; i < 20; i++)
+            waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, (i * 0.4f), "regular",0));
 
 
         waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "giant",0));
-        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2, "giant",0));
+        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1.6f, "giant",0));
+        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2.5f, "giant",0));
         waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "giant",0));
-        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4, "giant",0));
-
 
 
         waves.get(5).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "crusader",0));
 
+        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "giant",0));
+        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "crusader",0));
 
-        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
-
-
+        // ive yet to make these waves
         waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
-
         waves.get(8).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
-
-
         waves.get(9).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0));
 
 
@@ -165,27 +150,32 @@ public class Game
         upgrades_costs.get(0).add(25);
         upgrades_costs.get(0).add(25);
 
-        /*upgrades_costs.get(1).add(25);
         upgrades_costs.get(1).add(25);
         upgrades_costs.get(1).add(25);
         upgrades_costs.get(1).add(25);
         upgrades_costs.get(1).add(25);
-*/
+
+        upgrades_costs.get(2).add(25);
+        upgrades_costs.get(3).add(25);
+        upgrades_costs.get(4).add(25);
+        upgrades_costs.get(5).add(25);
+        upgrades_costs.get(6).add(25);
+        upgrades_costs.get(7).add(25);
+        upgrades_costs.get(8).add(25);
+        upgrades_costs.get(9).add(25);
+
+
 
 
         upgrades.get(0).add("Health");
-        upgrades.get(0).add("Heal");
         upgrades.get(0).add("Recharge");
-
-
-
-
+        upgrades.get(0).add("Heal");
 
 
         upgrades.get(1).add("Damage");
         upgrades.get(1).add("Health");
-        upgrades.get(1).add("Health");
-
+        upgrades.get(1).add("Recharge");
+        upgrades.get(1).add("Heal");
 
 
         upgrades.get(2).add("Recharge");

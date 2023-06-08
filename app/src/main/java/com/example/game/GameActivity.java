@@ -1,5 +1,6 @@
 package com.example.game;
 
+import android.content.Intent;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.view.View;
@@ -15,6 +16,7 @@ public class GameActivity extends AppCompatActivity
 
     GameView gameView;
 
+    static int max_wave;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -34,8 +36,6 @@ public class GameActivity extends AppCompatActivity
         // NOTICE! this is possible because GameView extends SurfaceView
 
 
-        if (gameView.returnToMainScreen)
-            finish();
 
     }
 
@@ -58,6 +58,5 @@ public class GameActivity extends AppCompatActivity
     protected void onRestart() {
         super.onRestart();
     }
-
 
 }

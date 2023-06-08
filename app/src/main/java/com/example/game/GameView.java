@@ -11,7 +11,6 @@
 
 package com.example.game;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -28,12 +27,7 @@ public class GameView extends SurfaceView implements Runnable
 {
 
 
-    boolean returnToMainScreen;
-    private final Ground ground;
-    private Player player;
-    private Game game;
 
-    // Objects
 
 
     private final int screenX, screenY;
@@ -41,12 +35,10 @@ public class GameView extends SurfaceView implements Runnable
     private final Paint paint;
     private final Paint paint1;
 
-    private float game_time;
     private int iteration;
     private boolean isPlaying;
     private Thread thread;
     private final GameActivity activity;
-    private final Context gameActivityContext;
     private final int sleep_millis;
 
 
@@ -54,17 +46,22 @@ public class GameView extends SurfaceView implements Runnable
     private byte quarter;
     private ArrayList<Projectile> p_arr;
     private float px, py;
+    private final Ground ground;
+    private Player player;
+    private Game game;
+    // Objects
+
 
     private float meter;
 
 
 
 
-    public GameView(GameActivity activity, short screenX, short screenY) {
+    public GameView(GameActivity activity, short screenX, short screenY)
+    {
         super(activity);
 
         this.activity = activity;
-        gameActivityContext = this.activity;
 
         this.screenX = screenX;
         this.screenY = screenY;
@@ -78,7 +75,6 @@ public class GameView extends SurfaceView implements Runnable
         player = new Player(getResources(), screenX, screenY, ground.height, metersInScreen);
         game = new Game(getResources(), screenX, screenY, ground.height, metersInScreen);
 
-        game_time = 0;
         p_arr = new ArrayList<>();
 
 
@@ -94,7 +90,7 @@ public class GameView extends SurfaceView implements Runnable
 
         iteration = 0;
         sleep_millis = 10;
-        returnToMainScreen = false;
+
     }
 
 
@@ -110,7 +106,8 @@ public class GameView extends SurfaceView implements Runnable
             iteration++;
         }
 
-        returnToMainScreen = true;
+
+        stopGame();
     }
 
 
@@ -120,12 +117,29 @@ public class GameView extends SurfaceView implements Runnable
     public void update() // issue: physics #25
     {
 
+        if ( player.hearts == 0 )
+            isPlaying = false;
+
         player.regenerateAmmo();
+
+
+
+        if (game.canResurrect > 0) // show availability
+            game.canResurrect--;
+
+        else
+            game.res_paint.setColor(Color.argb(200, 80, 210, 150));
+
+
 
 
         // wave is running
         if (game.isInWave)
         {
+
+            game.didContinue = false;
+
+
             for (int enemy_index = 0; enemy_index < game.waves.get(game.currentWave).size(); enemy_index++) // enemies within wave
             {
                 Enemy enemy = game.waves.get(game.currentWave).get(enemy_index); // temp
@@ -228,7 +242,6 @@ public class GameView extends SurfaceView implements Runnable
 
 
 
-
         // update resurrection state
         if (game.didResurrect && game.skeletons.isEmpty())
             game.didResurrect = false;
@@ -306,8 +319,7 @@ public class GameView extends SurfaceView implements Runnable
 
 
 
-        if ( player.hearts == 0 )
-            isPlaying = false;
+
 
 
     }
@@ -331,7 +343,6 @@ public class GameView extends SurfaceView implements Runnable
 
             //background
             screenCanvas.drawBitmap(ground.backgroundBitmap, 0, 0, paint);//background
-
             // wave number
             screenCanvas.drawText((game.currentWave + 1) + " - " + 10, screenX - (15 * getResources().getDisplayMetrics().scaledDensity) * 7 , player.meter, paint);
 
@@ -339,7 +350,6 @@ public class GameView extends SurfaceView implements Runnable
             // show skulls to later resurrect
             for (int i = 0; i < game.deadX.size(); i++)
                 screenCanvas.drawBitmap(game.skullBitmap, game.deadX.get(i), screenY - ground.height - screenY/ 40f, paint);
-
 
             // only when resurrected skeletons would be added
             for (int i = 0; i < game.skeletons.size(); i++)
@@ -383,8 +393,6 @@ public class GameView extends SurfaceView implements Runnable
             else
                 screenCanvas.drawBitmap(player.bobNormalBitmap, player.x, player.y, paint);
 
-
-
             // heart system
             for (int i = 1; i <= player.maxHearts; i++)
                 if (i > player.hearts)
@@ -409,12 +417,11 @@ public class GameView extends SurfaceView implements Runnable
                     Enemy enemy = game.waves.get(game.currentWave).get(enemy_index);
 
                     screenCanvas.drawBitmap(enemy.enemyBitmap, enemy.x, enemy.y, paint);
-
                     enemy.displayHearts(screenCanvas, paint);
                 }
 
 
-                screenCanvas.drawCircle(screenX/2f - game.circleRadius*0.7f/2, screenY/10f , game.circleRadius * 0.7f ,paint);
+                screenCanvas.drawCircle(screenX/2f - game.circleRadius*0.7f/2, screenY/10f , game.circleRadius * 0.7f ,game.res_paint);
 
                 screenCanvas.drawText("Resurrect", screenX/2f - game.circleRadius*0.7f/2 +
                                 ((game.circleRadius*0.7f*2 - ("Resurrect".length() * paint1.getTextSize())))/2,
@@ -426,16 +433,13 @@ public class GameView extends SurfaceView implements Runnable
 
             else // -> between waves
             {
-                if (player.hearts <= 0)
-                    isPlaying = false;
-
-                else {
-                    checkUpgrades();                            // don't show irrelevant upgrades
-                    afterWaveScreen(screenCanvas, player.xp);   // show upgrades and stuff
-                    screenCanvas.drawText("(i)  " + game.explainUpgrade, screenX / 2f, player.y, paint); // explain upgrades
-                }
+                afterWaveScreen(screenCanvas, player.xp);   // show upgrades and stuff
+                screenCanvas.drawText("(i)  " + game.explainUpgrade, screenX / 2f, player.y, paint); // explain upgrades
             }
 
+
+            if (player.hearts <= 0)
+                isPlaying = false;
 
             getHolder().unlockCanvasAndPost(screenCanvas);
         }
@@ -459,9 +463,6 @@ public class GameView extends SurfaceView implements Runnable
             else
                 p_arr.get(i).time = 0;
         }
-
-
-        game_time += sleep_millis/1000f;
     }
 
 
@@ -523,12 +524,11 @@ public class GameView extends SurfaceView implements Runnable
 
                 //explaining system
                 else
+                if ( ! game.didContinue )
                     for (int i = 0; i < game.upgrades.get(game.currentWave).size(); i++)
                         if (event.getX() >= game.cx_arr.get(i) - game.circleRadius && event.getX() <= game.cx_arr.get(i) + game.circleRadius
                                 && event.getY() >= game.cy_arr.get(i) - game.circleRadius && event.getY() <= game.cy_arr.get(i) + game.circleRadius)
                             explainUpgrades(i);
-
-
 
 
 
@@ -591,16 +591,21 @@ public class GameView extends SurfaceView implements Runnable
                 if ( game.isInWave )
                 {
                     // pressed resurrection button
-                    if (event.getX() >= screenX/2f - game.circleRadius*0.7f && event.getX() <= screenX/2f + game.circleRadius*0.7f
-                            && event.getY() >= screenY/10f - game.circleRadius*0.7f && event.getY() <= screenY/10f + game.circleRadius * 0.7f)
-                        resurrect();
+                    if (event.getX() >= screenX / 2f - game.circleRadius * 0.7f && event.getX() <= screenX / 2f + game.circleRadius * 0.7f
+                            && event.getY() >= screenY / 10f - game.circleRadius * 0.7f && event.getY() <= screenY / 10f + game.circleRadius * 0.7f) {
+                        if (game.canResurrect == 0) {
+                            if ( ! game.deadX.isEmpty()) {
+                                resurrect();
 
+                                game.canResurrect = 200; // restart counter
+                            }
+                        }
+                    }
 
-                        // shoot !
+                    // shoot !
                     else if (player.ammo >= 1)
                     {
                         player.ammo--;
-
 
                         if (p_arr.size() > 0)
                         {
@@ -617,12 +622,12 @@ public class GameView extends SurfaceView implements Runnable
                             p_arr.get(p_arr.size() - 1).v0y = (float) (-1 * Math.sin(angle_of_touch) * p_arr.get(p_arr.size() - 1).v);
                         }
                     }
+
                 }
 
 
                 // else -> upgrade choosing mechanism
-                else
-                {
+                else {
                     // continue button pressed
                     if (event.getX() >= game.Ccx - game.circleRadius && event.getX() <= game.Ccx + game.circleRadius
                             && event.getY() >= game.Ccy - game.circleRadius && event.getY() <= game.Ccy + game.circleRadius)
@@ -644,6 +649,7 @@ public class GameView extends SurfaceView implements Runnable
 
     public void resurrect ()
     {
+
         // for each skull -> create skeleton
         for (int i = 0; i < game.deadX.size(); i++)
             game.skeletons.add(new Enemy(getResources(), screenX, screenY, ground.height, (byte) 25, 1, "skeleton", game.deadX.get(i)));
@@ -653,150 +659,176 @@ public class GameView extends SurfaceView implements Runnable
 
         // to remove skulls
         game.didResurrect = true;
+
+        game.res_paint.setColor(Color.argb(200, 180, 100, 100));
+
+
     }
 
 
 
 
-    // don't show irrelevant upgrades
-    public void checkUpgrades()
-    {
-        if (player.hearts == player.maxHearts)
-            game.upgrades.get(game.currentWave).remove("Heal");
-
-    }
 
 
     public void afterWaveScreen (Canvas canvas, int playerXP)
     {
 
-        int howManyUnderXP = 0; // to subtract from how many we show
-
-
-        // for each wave, display upgrades
-        for (int wave_index = 0; wave_index < game.waves.size(); wave_index++)
-        {
-
-/*            for (int upgrade_index = 0; upgrade_index < upgrades.get(wave_index).size(); upgrade_index++)
-                if (playerXP < upgrades_costs.get(wave_index).get(upgrade_index))
-                    howManyUnderXP++;*/
-
-
-            // draw upgrade bubbles of wave;
-            for (int i = 0; i < game.upgrades.get(game.currentWave).size() - howManyUnderXP; i++)
+        // draw upgrade bubbles of current wave;
+        for (int upgrade_index = 0; upgrade_index < game.upgrades.get(game.currentWave).size(); upgrade_index++) {
+            // start x is: screenX / 8f | start x of next: a radius away from end of last one
+            // check if all the upgrades fit in the screen
+            if (screenX / 8f + (game.circleRadius * 3 * upgrade_index) < screenX) {
+                game.cx = screenX / 8f + (game.circleRadius * 3 * upgrade_index);
+                game.cy = screenY / 3f;
+            }
+            else // (lower)
             {
-                // start x is: screenX / 8f | start x of next: a radius away from end of last one
-                // check if all the upgrades fit in the screen
-                if (screenX / 8f + (game.circleRadius * 3 * i) < screenX)
-                {
-                    game.cx = screenX / 8f + (game.circleRadius * 3 * i);
-                    game.cy = screenY / 3f;
-                }
-                else // (lower)
-                {
-                    if (game.whenOutOfscreen == 0)
-                        game.whenOutOfscreen = i;
+                if (game.whenOutOfscreen == 0)
+                    game.whenOutOfscreen = upgrade_index;
 
-                    game.cx = screenX / 8f + (game.circleRadius * 3 * (i - game.whenOutOfscreen));
+                game.cx = screenX / 8f + (game.circleRadius * 3 * (upgrade_index - game.whenOutOfscreen));
 
-                    game.cy = 2 * screenY / 3f;
-                }
-
-
-                game.cx_arr.add(game.cx);
-                game.cy_arr.add(game.cy); // for clicking
-
-                // for every circle there's a (x,y) point of the middle point
-                canvas.drawCircle(game.cx, game.cy, game.circleRadius, game.circle_paint); // x,y are the middle points! not up-left!!
-
-                // text in circle would be in the middle
-                canvas.drawText(game.upgrades.get(game.currentWave).get(i),
-                        game.cx - game.circleRadius + (game.circleRadius * 2 - game.upgrades.get(game.currentWave).get(i).length() * game.textSize) / 2f,
-                        game.cy + game.textSize / 2f, game.text_paint);
-
-
-//                canvas.drawText(upgrades_costs.get(currentWave).get(i) + "", cx, cy - circleRadius, text_paint);
-
-                canvas.drawText("xp: " + playerXP, screenX / 2f, 50, game.text_paint);
-
+                game.cy = 2 * screenY / 3f;
             }
 
+
+            // for every circle there's a (x,y) point of the middle point
+            game.cx_arr.add(game.cx);
+            game.cy_arr.add(game.cy); // for clicking
+
+
+            if (game.upgrades_costs.get(game.currentWave).size() > upgrade_index) {
+                // to show the user that if they don't have enough XP they can't upgrade
+                if (player.xp < game.upgrades_costs.get(game.currentWave).get(upgrade_index))
+                    game.circle_paint.setColor(Color.argb(100, 160, 60, 60));
+                else
+                    game.circle_paint.setColor(Color.argb(100, 40, 160, 110));
+
+                canvas.drawText("xp: " + game.upgrades_costs.get(game.currentWave).get(upgrade_index), game.cx - game.circleRadius, game.cy - game.circleRadius, game.text_paint);
+            }
+
+            canvas.drawCircle(game.cx, game.cy, game.circleRadius, game.circle_paint); // x,y are the middle points! not up-left!!
+
+
+            // text in circle would be in the middle
+            canvas.drawText(game.upgrades.get(game.currentWave).get(upgrade_index),
+                    game.cx - game.circleRadius + (game.circleRadius * 2 - game.upgrades.get(game.currentWave).get(upgrade_index).length() * game.textSize) / 2f,
+                    game.cy + game.textSize / 2f, game.text_paint);
+
+
+
+
+            canvas.drawText("xp: " + playerXP, screenX / 2f, 50, game.text_paint);
+
+
+
+
+            // 'continue' button
+            game.Ccx = screenX - game.circleRadius * 2;
+            game.Ccy = screenY - game.circleRadius * 2;
+
+            game.circle_paint.setColor(Color.argb(100, 160, 60, 60));
+            canvas.drawCircle(game.Ccx, game.Ccy, game.circleRadius, game.circle_paint);
+            game.circle_paint.setColor(Color.argb(100, 40, 160, 110)); // upgrades
+
+            canvas.drawText("continue", game.Ccx - game.circleRadius + (game.circleRadius * 2 - "continue".length() * game.textSize) / 2f,
+                    game.Ccy + game.textSize / 2f, game.text_paint);
         }
-
-
-
-        // 'continue' button
-        game.Ccx = screenX - game.circleRadius * 2;
-        game.Ccy = screenY - game.circleRadius * 2;
-
-        game.circle_paint.setColor(Color.argb(150, 220, 100, 80)); // change color
-        canvas.drawCircle(game.Ccx, game.Ccy, game.circleRadius, game.circle_paint);
-        game.circle_paint.setColor(Color.argb(150, 78, 166, 135)); // change color back
-
-        canvas.drawText("continue", game.Ccx - game.circleRadius + (game.circleRadius * 2 - "continue".length() * game.textSize) / 2f,
-                game.Ccy + game.textSize / 2f, game.text_paint);
     }
 
 
 
-    public void upgrade ( String upgrade )
+    public void upgrade ( String upgrade_name )
     {
+        int indexOfUpgrade = game.upgrades.get(game.currentWave).indexOf(upgrade_name);
 
 
-        if ( upgrade.equals("Health") )
+        // can't upgrade
+
+        if (game.upgrades_costs.get(game.currentWave).size() > indexOfUpgrade)
         {
-            player.maxHearts++;
-
-            // if players' full life - adding one to max hearts will add a heart as well
-            if (player.hearts == player.maxHearts - 1)
-                player.hearts = player.maxHearts;
-
-            game.upgrades.get(game.currentWave).remove("Health");
-        }
+            if (game.upgrades_costs.get(game.currentWave).get(indexOfUpgrade) > player.xp)
+                explainUpgrades(-1);
 
 
-        if ( upgrade.equals("Heal") )
-        {
-            player.hearts++;
-            game.upgrades.get(game.currentWave).remove("Health");
-        }
+                // can upgrade
+            else {
+                if (upgrade_name.equals("Health")) {
+                    player.maxHearts++;
 
-        if ( upgrade.equals("Recharge") )
-        {
-            player.maxAmmo++;
-            game.upgrades.get(game.currentWave).remove("Recharge");
+                    // if players' full life - adding one to max hearts will add a heart as well
+                    if (player.hearts == player.maxHearts - 1)
+                        player.hearts = player.maxHearts;
+
+                    player.xp -= game.upgrades_costs.get(game.currentWave).get((indexOfUpgrade));
+
+                    game.upgrades.get(game.currentWave).remove("Health");
+                    game.upgrades_costs.get(game.currentWave).remove(game.upgrades_costs.get(game.currentWave).get(indexOfUpgrade));
+
+                }
+
+
+                else if (upgrade_name.equals("Heal")) {
+                    player.xp -= game.upgrades_costs.get(game.currentWave).get((indexOfUpgrade));
+
+                    player.hearts++;
+                    game.upgrades.get(game.currentWave).remove("Health");
+                    game.upgrades_costs.get(game.currentWave).remove(game.upgrades_costs.get(game.currentWave).get(indexOfUpgrade));
+
+
+                }
+
+                else if (upgrade_name.equals("Recharge"))
+                {
+                    player.maxAmmo++;
+
+                    player.xp -= game.upgrades_costs.get(game.currentWave).get((indexOfUpgrade));
+
+                    game.upgrades.get(game.currentWave).remove("Recharge");
+                    game.upgrades_costs.get(game.currentWave).remove(game.upgrades_costs.get(game.currentWave).get(indexOfUpgrade));
+
+                }
+
+            }
         }
     }
 
 
     public void explainUpgrades (int serialNum)
     {
-        switch (game.upgrades.get(game.currentWave).get(serialNum)) // orcale says this is the same as .equals()
-        {
 
-            case "Health":
-                game.explainUpgrade = "+1 max heart";
-                break;
+        if (serialNum == -1)
+            game.explainUpgrade = "insufficient XP points";
 
-            case "Heal":
-                game.explainUpgrade = "heals one heart";
-                break;
+        else {
+            switch (game.upgrades.get(game.currentWave).get(serialNum)) // oracle says this is the same as .equals()
+            {
 
-            case "Recharge":
-                game.explainUpgrade = "+1 max ammo";
-                break;
+                case "Health":
+                    game.explainUpgrade = "+1 max heart";
+                    break;
 
-            case "Damage":
-                game.explainUpgrade = "x2 damage";
-                break;
+                case "Heal":
+                    game.explainUpgrade = "heals one heart";
+                    break;
 
-            case "Freeze": // show icicle effect above the head of the entity
-                game.explainUpgrade = "20% chance to freeze enemy when hit";
-                break;
+                case "Recharge":
+                    game.explainUpgrade = "+1 max ammo";
+                    break;
 
-            case "Bleed": // show red effect above the head of the entity
-                game.explainUpgrade = "slowly damage enemies";
-                break;
+                case "Damage":
+                    game.explainUpgrade = "x2 damage";
+                    break;
+
+                case "Freeze": // show icicle effect above the head of the entity
+                    game.explainUpgrade = "20% chance to freeze enemy when hit";
+                    break;
+
+                case "Bleed": // show red effect above the head of the entity
+                    game.explainUpgrade = "slowly damage enemies";
+                    break;
+
+            }
 
         }
     }
@@ -843,5 +875,12 @@ public class GameView extends SurfaceView implements Runnable
 
 
 
-    public Context getGameActivityContext() {return gameActivityContext;}
+    public void stopGame()  // discussion: "activity lifecycle"
+    {
+/*        Intent toMainActivity = new Intent(activity, MainActivity.class);
+
+        activity.startActivity(toMainActivity);*/
+        activity.finish();
+    }
+
 }

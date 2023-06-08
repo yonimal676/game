@@ -87,7 +87,7 @@ public class Player
 
         maxAmmo = 3;
         ammo = 3;
-        AmmoRegenerationPace = 10;
+        AmmoRegenerationPace = 20;
         iterationForAmmoRegeneration = AmmoRegenerationPace;
 
         ammoBitmap = BitmapFactory.decodeResource(res, R.drawable.projectile);
