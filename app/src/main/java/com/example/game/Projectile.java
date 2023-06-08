@@ -14,13 +14,13 @@ public class Projectile
     float x, y;
     short width, height;
     Bitmap projectileBitmap;
-    Bitmap transparentBitmap;
 
     //physics
     float angle;
     float v ,vx, vy, v0y; // velocity, velocityX, velocityY, initialVelocityY
     float time;
     float GRAVITY;
+
     boolean isThrown;
     final float meter; // for graspable ratio.
 
@@ -63,9 +63,6 @@ public class Projectile
         projectileBitmap = Bitmap.createScaledBitmap(projectileBitmap, width, height, false);
 
 
-        // to nullify the original bitmap
-        transparentBitmap = BitmapFactory.decodeResource(res, R.drawable.projectile);
-        transparentBitmap = Bitmap.createScaledBitmap(transparentBitmap, 1, 1, false);
 
 
         // Physics-related stuff: todo -> NOT NEGATIVE GRAVITY,  also:   ball.vy = ball.v0y + ball.GRAVITY * ball.time;
@@ -113,7 +110,6 @@ public class Projectile
                         enemy.shielded = true;
                     }
                 }
-
                 else
                     enemy.hearts -= damage;
 
@@ -121,12 +117,9 @@ public class Projectile
                 return;
             }
 
-
         // hit ground
         if ( y + height >= screenY - groundHeight)
             toRemove = true;
-
-
     }
 
     public void physics ()

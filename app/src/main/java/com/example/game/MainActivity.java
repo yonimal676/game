@@ -7,8 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -22,7 +20,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     // for story
     AlertDialog.Builder builder;
 
-    FirebaseAuth mAuth;
+    FirebaseAuth firebaseInstance;
     FirebaseUser user;
     Button userButton;
 
@@ -43,20 +41,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
         // start GameActivity
-        findViewById(R.id.play_btn).setOnClickListener(view ->
-                startActivity(new Intent(this, GameActivity.class)));
+        findViewById(R.id.play_btn).setOnClickListener(view -> startActivity(new Intent(this, GameActivity.class)));
 
 
 
-        mAuth = FirebaseAuth.getInstance();
-        user = mAuth.getCurrentUser();
+        firebaseInstance = FirebaseAuth.getInstance();
+        user = firebaseInstance.getCurrentUser();
 
 
         if (User_dialog.user != null)
             findViewById(R.id.user_btn).setBackground(ContextCompat.getDrawable(this, R.drawable.logout_icon));
 
 
-        userButton = (Button) findViewById(R.id.user_btn);
+        userButton =  findViewById(R.id.user_btn);
         userButton.setOnClickListener(this);
 
 
@@ -102,7 +99,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 FirebaseAuth.getInstance().signOut();
 
                 // NOTICE: these two lines below are supremely important, otherwise the user would never be null
-                user = mAuth.getCurrentUser();
+                user = firebaseInstance.getCurrentUser();
 //                User_dialog.user = new User(false);
 
                 // when logged out show the user he can login again.
@@ -112,13 +109,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         }
     }
-/*
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        FirebaseAuth.getInstance().signOut();
 
-        Toast.makeText(this, "hi",Toast.LENGTH_SHORT).show();
-    }*/
 }
 

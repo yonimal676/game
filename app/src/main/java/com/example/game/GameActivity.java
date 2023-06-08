@@ -16,7 +16,7 @@ public class GameActivity extends AppCompatActivity
 
     GameView gameView;
 
-    static int max_wave;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -47,7 +47,6 @@ public class GameActivity extends AppCompatActivity
 
         finish();
     }
-
     @Override
     protected void onResume() {
         super.onResume();

@@ -202,6 +202,36 @@ public class Game
 
 
 
+    void crusader(Enemy crusader_enemy, float meter , Resources res)
+    {
+
+
+        if (crusader_enemy.shield_counter > 0)
+            crusader_enemy.shield_counter--;
+        else
+            crusader_enemy.shield_counter = 100;
+
+        if (crusader_enemy.shield_counter == 0)
+            crusader_enemy.shielded = false;
+
+
+        if (!crusader_enemy.shielded)
+        {
+            crusader_enemy.speed = 1500/meter;
+            crusader_enemy.added_damage = 3;
+
+            crusader_enemy.enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.crusader_attack);
+            crusader_enemy.enemyBitmap = Bitmap.createScaledBitmap(crusader_enemy.enemyBitmap, (int) crusader_enemy.width * 2, (int) crusader_enemy.height, false);
+        }
+        else {
+            crusader_enemy.speed = 500/meter;
+            crusader_enemy.added_damage = 0;
+
+            crusader_enemy.enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.crusader_shielded);
+            crusader_enemy.enemyBitmap = Bitmap.createScaledBitmap(crusader_enemy.enemyBitmap, (int) crusader_enemy.width, (int) crusader_enemy.height, false);
+        }
+
+    }
 
 
 

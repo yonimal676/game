@@ -1,0 +1,177 @@
+@startuml
+class com.example.game.Game {
+~ ArrayList<ArrayList<Enemy>> waves
+~ byte currentWave
+~ boolean isInWave
+~ boolean didContinue
+~ Paint circle_paint
+~ Paint text_paint
+~ Paint res_paint
+~ int circleRadius
+~ int textSize
+~ float scaledSizeInPixels
+~ int whenOutOfscreen
+~ ArrayList<ArrayList<String>> upgrades
+~ String explainUpgrade
+~ float cx
+~ float Ccx
+~ ArrayList<Float> cx_arr
+~ ArrayList<Float> cy_arr
+~ ArrayList<ArrayList<Integer>> upgrades_costs
+~ ArrayList<Float> deadX
+~ ArrayList<Enemy> skeletons
+~ Bitmap skullBitmap
+~ boolean didResurrect
+~ int canResurrect
++ <<Create>> Game(Resources,int,int,int,byte)
+}
+class com.example.game.GameActivity {
+~ GameView gameView
+~ {static} int max_wave
+# void onCreate(Bundle)
+# void onPause()
+# void onResume()
+# void onRestart()
+}
+class com.example.game.Player {
+~ float aimX
+~ short crosshairSize
+~ int iteration_of_throw
+~ Bitmap crosshairBitmap
+~ float x
+~ float width
+~ float meter
+~ float midX
+~ Bitmap bobNormalBitmap
+~ Bitmap bobThrowingBitmap
+~ byte hearts
+~ byte maxHearts
+~ Bitmap heartBitmap
+~ Bitmap emptyHeartBitmap
+~ byte ammo
+~ byte maxAmmo
+~ int iterationForAmmoRegeneration
+~ int AmmoRegenerationPace
+~ Bitmap ammoBitmap
+~ Bitmap emptyAmmoBitmap
+~ int xp
++ <<Create>> Player(Resources,int,int,int,byte)
+~ void setCrosshairPosition(float,float)
++ void regenerateAmmo()
+}
+class com.example.game.MainActivity {
+~ AlertDialog.Builder builder
+~ FirebaseAuth mAuth
+~ FirebaseUser user
+~ Button userButton
+# void onCreate(Bundle)
+- void openStoryDialog()
++ void onClick(View)
+}
+class com.example.game.Enemy {
+~ float x
+~ float width
+~ int hearts
+~ float speed
+~ Bitmap enemyBitmap
+~ Bitmap heartBitmap
+~ int[] randomRegularBitmap
+~ int xp
+~ float meter
+~ int groundHeight
+~ String type
+~ boolean shielded
+~ int shield_counter
+~ int added_damage
++ <<Create>> Enemy(Resources,int,int,int,byte,float,String,float)
+~ void displayHearts(Canvas,Paint)
+~ void jump(int)
+}
+class com.example.game.User_dialog {
+~ FirebaseAuth mAuth
+~ {static} User user
+# void onCreate(Bundle)
++ void register(String,String)
++ void login(String,String)
+}
+class com.example.game.User {
+- String name
+- String password
++ <<Create>> User(String,String)
++ String getPassword()
++ void setPassword(String)
++ String getName()
++ void setName(String)
+}
+class com.example.game.Projectile {
+~ float initialX
+~ float x
+~ short width
+~ Bitmap projectileBitmap
+~ Bitmap transparentBitmap
+~ float angle
+~ float v
+~ float time
+~ float GRAVITY
+~ boolean isThrown
+~ float meter
+~ ArrayList<Float> dotArrayListX
+~ ArrayList<Float> dotArrayListY
+~ boolean toRemove
+~ byte damage
+~ float screenX
++ <<Create>> Projectile(Resources,int,int,float,float,float,byte)
+~ float findAngle(float,float,float,float)
++ void didHit(int,Enemy)
++ void physics()
+}
+class com.example.game.Ground {
+~ int x
+~ int width
+~ float meter
+~ Bitmap groundBitmap
+~ Bitmap backgroundBitmap
++ <<Create>> Ground(Resources,int,int,byte)
+}
+class com.example.game.GameView {
+- int screenX
+- byte metersInScreen
+- Paint paint
+- Paint paint1
+- int iteration
+- boolean isPlaying
+- Thread thread
+- GameActivity activity
+- int sleep_millis
+- float angle_of_touch
+- byte quarter
+- ArrayList<Projectile> p_arr
+- float px
+- Ground ground
+- Player player
+- Game game
+- float meter
++ <<Create>> GameView(GameActivity,short,short)
++ void run()
++ void update()
++ void draw()
+- void sleep()
++ boolean onTouchEvent(MotionEvent)
++ void resurrect()
++ void afterWaveScreen(Canvas,int)
++ void upgrade(String)
++ void explainUpgrades(int)
++ void quarterOfThrow()
++ void resume()
++ void pause()
++ void stopGame()
+}
+
+
+androidx.appcompat.app.AppCompatActivity <|-- com.example.game.GameActivity
+com.example.game.OnClickListener <|.. com.example.game.MainActivity
+androidx.appcompat.app.AppCompatActivity <|-- com.example.game.MainActivity
+androidx.appcompat.app.AppCompatActivity <|-- com.example.game.User_dialog
+com.example.game.Runnable <|.. com.example.game.GameView
+android.view.SurfaceView <|-- com.example.game.GameView
+@enduml

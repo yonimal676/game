@@ -13,16 +13,15 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.ktx.Firebase;
 
 public class User_dialog extends AppCompatActivity
 {
 
-    FirebaseAuth mAuth;
+    FirebaseAuth firebaseAuth;
 
     static User user;
-
+    EditText email_editText;
+    EditText password_editText;
 
 
     @Override
@@ -32,11 +31,10 @@ public class User_dialog extends AppCompatActivity
         setContentView(R.layout.dialog_layout);
 
 
+        firebaseAuth = FirebaseAuth.getInstance();
 
-        mAuth = FirebaseAuth.getInstance();
-
-        final EditText email_editText = findViewById(R.id.editText1);
-        final EditText password_editText = findViewById(R.id.editText2);
+        email_editText = findViewById(R.id.editText1);
+        password_editText = findViewById(R.id.editText2);
 
 
 
@@ -45,7 +43,6 @@ public class User_dialog extends AppCompatActivity
             startActivity(intent);
             finish();
         });
-
 
 
         // registration
@@ -60,7 +57,6 @@ public class User_dialog extends AppCompatActivity
             else
                 register(email_editText.getText().toString(), password_editText.getText().toString());
         });
-
 
 
 
@@ -89,7 +85,7 @@ public class User_dialog extends AppCompatActivity
     public void register (String email, String password)
     {
 
-        mAuth.createUserWithEmailAndPassword(email, password)
+        firebaseAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener( new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task)
@@ -117,12 +113,11 @@ public class User_dialog extends AppCompatActivity
 
 
 
-    //TODO: HE REMOVED 'THIS'
 
     public void login (String email, String password)
     {
 
-        mAuth.signInWithEmailAndPassword(email, password)
+        firebaseAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener( new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {

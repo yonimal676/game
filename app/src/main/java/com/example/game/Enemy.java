@@ -14,11 +14,13 @@ public class Enemy
 
     float x, y;
     float width, height;
-    int hearts;
-    float speed; // number of pixels per iteration
     Bitmap enemyBitmap;
     Bitmap heartBitmap;
     int[] randomRegularBitmap = {R.drawable.enemy1, R.drawable.enemy2, R.drawable.enemy3, R.drawable.enemy4};
+
+    int hearts;
+    float speed; // number of pixels per iteration
+
 
     int xp;
 
@@ -66,7 +68,7 @@ public class Enemy
             xp = 10;
         }
 
-        if (type.equals("ghost")) {
+        else if (type.equals("ghost")) {
 
             width = meter;
             height = meter * 1.2f;
@@ -87,7 +89,7 @@ public class Enemy
         }
 
 
-        if (type.equals("giant"))
+        else if (type.equals("giant"))
         {
 
             width = meter * 1.75f;
@@ -113,7 +115,7 @@ public class Enemy
 
 
 
-        if (type.equals("skeleton")) //not an enemy but could be here
+        else if (type.equals("skeleton")) //not an enemy but could be here
         {
 
             width = meter * 0.6f;
@@ -135,7 +137,7 @@ public class Enemy
 
 
 
-        if (type.equals("crusader"))
+        else if (type.equals("crusader"))
         {
             width = meter * 1.2f;
             height = meter * 1.6f;
@@ -173,13 +175,6 @@ public class Enemy
 
             canvas.drawBitmap(heartBitmap, x +  (groundHeight * i), y + height, paint);
         }
-    }
-
-
-
-    void jump (int iteration)
-    {
-
     }
 
 }
