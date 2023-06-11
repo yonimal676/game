@@ -6,7 +6,6 @@
 
     android:background="@drawable/scroll"
     >
-
     <TextView
         android:id="@+id/one"
 
@@ -21,7 +20,5 @@
         android:textColor="@color/black"
         android:textSize="20sp"
         />
-
-
 
 </RelativeLayout>

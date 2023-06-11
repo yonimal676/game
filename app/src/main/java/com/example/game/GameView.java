@@ -119,9 +119,7 @@ public class GameView extends SurfaceView implements Runnable
         if ( player.hearts <= 0 )
             isPlaying = false;
 
-
         player.regenerateAmmo();
-
 
 
         if (game.canResurrect > 0) // show availability
@@ -131,20 +129,16 @@ public class GameView extends SurfaceView implements Runnable
             game.res_paint.setColor(Color.argb(200, 80, 210, 150));
 
 
-
-
         // wave is running
         if (game.isInWave)
         {
             game.didContinue = false;
-
 
             for (int enemy_index = 0; enemy_index < game.waves.get(game.currentWave).size(); enemy_index++) // enemies within wave
             {
                 Enemy enemy = game.waves.get(game.currentWave).get(enemy_index); // temp
 
                 enemy.x -= enemy.speed;
-
 
                 // enemy reaches player
                 if (enemy.x <= player.x + player.width)

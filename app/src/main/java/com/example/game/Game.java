@@ -3,17 +3,12 @@ package com.example.game;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-
 import java.util.ArrayList;
-import java.util.function.BiConsumer;
 
 public class Game
 {
-
-
 
     ArrayList<ArrayList<Enemy>> waves;
     byte currentWave;

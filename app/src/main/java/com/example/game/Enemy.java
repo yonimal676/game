@@ -169,11 +169,16 @@ public class Enemy
 
     void displayHearts (Canvas canvas, Paint paint)
     {
-        for (int i = 1; i <= hearts; i++)
-        {
-            heartBitmap = Bitmap.createScaledBitmap(heartBitmap, groundHeight,  groundHeight,false);
+        heartBitmap = Bitmap.createScaledBitmap(heartBitmap, groundHeight,  groundHeight,false);
 
-            canvas.drawBitmap(heartBitmap, x +  (groundHeight * i), y + height, paint);
+        if (hearts <= 5)
+            for (int i = 1; i <= hearts; i++)
+                canvas.drawBitmap(heartBitmap, x +  (groundHeight * i), y + height, paint);
+
+        else
+        {
+            canvas.drawText(hearts + "", x, y + height, paint);
+            canvas.drawBitmap(heartBitmap, x + groundHeight, y + height, paint);
         }
     }
 
