@@ -1,39 +1,36 @@
 
-/* TODO: Bugs:
+/* TODO:
 
-1. spam when empty ammo
-2. path missing a dot
-3. projectile occasionally teleports
-4. when shooting fast and to very different directions, projectile is seen once at the previous aim(x,y)
-5. touching slightly at the beginning of the game doen't shoot
-
+path missing a dot
+projectile occasionally teleports
+when shooting fast and to very different directions, projectile is seen once at the previous aim(x,y)
+touching slightly at the beginning of the game doesn't shoot
+wizard enemy (?)
+more upgrades
+make the game good
+text of story in-game (?)
+bob's hearts don't go down
 */
 
 package com.example.game;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
-
-
 import java.util.ArrayList;
 
 
 public class GameView extends SurfaceView implements Runnable
 {
 
-
-
-
+    private final Paint paint1;
+    private final Paint paint2;
+    private final Paint white_text_paint;
 
     private final int screenX, screenY;
     private byte metersInScreen;
-    private final Paint paint;
-    private final Paint paint1;
 
     private int iteration;
     private boolean isPlaying;
@@ -73,20 +70,24 @@ public class GameView extends SurfaceView implements Runnable
 
         ground = new Ground(getResources(), screenX, screenY, metersInScreen);
         player = new Player(getResources(), screenX, screenY, ground.height, metersInScreen);
-        game = new Game(getResources(), screenX, screenY, ground.height, metersInScreen);
+        game = new Game(getResources(), screenX, screenY, ground.height, metersInScreen, player.x + player.width, player.y);
 
         p_arr = new ArrayList<>();
 
 
-        paint = new Paint();
-        paint.setColor(Color.rgb(78, 166, 135));
-        paint.setTextSize(15 * getResources().getDisplayMetrics().scaledDensity);
 
+
+        white_text_paint = new Paint();
+        white_text_paint.setColor(Color.rgb(255, 255, 255));
+        white_text_paint.setTextSize(15 * getResources().getDisplayMetrics().scaledDensity);
 
         paint1 = new Paint();
-        paint1.setColor(Color.BLACK);
+        paint1.setColor(Color.rgb(12, 207, 152));
         paint1.setTextSize(10 * getResources().getDisplayMetrics().scaledDensity);
 
+        paint2 = new Paint();
+        paint2.setColor(Color.rgb(12, 207, 152));
+        paint2.setTextSize(10 * getResources().getDisplayMetrics().scaledDensity);;
 
         iteration = 0;
         sleep_millis = 10;
@@ -106,7 +107,7 @@ public class GameView extends SurfaceView implements Runnable
             iteration++;
         }
 
-
+        // when not playing:
         stopGame();
     }
 
@@ -140,6 +141,8 @@ public class GameView extends SurfaceView implements Runnable
 
                 enemy.x -= enemy.speed;
 
+                enemy.XPWaveMultiplier(game.currentWave);
+
                 // enemy reaches player
                 if (enemy.x <= player.x + player.width)
                 {
@@ -149,7 +152,7 @@ public class GameView extends SurfaceView implements Runnable
 
 
                 for (int i = 0; i < p_arr.size(); i++ )
-                    p_arr.get(i).didHit(ground.height, enemy); // check if any projectile hit any enemy
+                    p_arr.get(i).didHit(ground.height, enemy, player.damage, player); // check if any projectile hit any enemy
 
 
                 if (enemy.type.equals("crusader"))
@@ -197,10 +200,6 @@ public class GameView extends SurfaceView implements Runnable
 
             } // enemies
 
-
-
-
-
         }// isInWave
 
 
@@ -224,7 +223,7 @@ public class GameView extends SurfaceView implements Runnable
             // because you can kill skeletons too.
             for (int i = 0; i < p_arr.size(); i++)
             {
-                p_arr.get(i).didHit(ground.height, skeleton);
+                p_arr.get(i).didHit(ground.height, skeleton, player.damage, player);
 
                 if (p_arr.get(i).toRemove)
                     p_arr.remove(p_arr.get(i));
@@ -240,7 +239,7 @@ public class GameView extends SurfaceView implements Runnable
 
         for (int i = 0; i < p_arr.size(); i++) // updating the already-shot projectiles ( and their dots )
         {
-            p_arr.get(i).didHit(ground.height, null);
+            p_arr.get(i).didHit(ground.height, null, player.damage, player);
 
 
             if (p_arr.get(i).isThrown)
@@ -263,6 +262,29 @@ public class GameView extends SurfaceView implements Runnable
                 p_arr.remove(p_arr.get(i));
         }
 
+
+        // guard shooting
+        for (int enemy_index = 0; enemy_index < game.waves.get(game.currentWave).size(); enemy_index++)
+        {
+            if (game.waves.get(game.currentWave).get(enemy_index).type.equals("guard"))
+            {
+                Enemy enemy = game.waves.get(game.currentWave).get(enemy_index); // temp
+
+                game.guard(enemy, getResources(), screenX, screenY, ground.height, metersInScreen, enemy.x, enemy.y);
+
+
+                for (int i = 0; i < enemy.guard_projectiles.size(); i++) // updating the already-shot projectiles ( and their dots )
+                {
+                    enemy.guard_projectiles.get(i).didHit(ground.height, null, player.damage, player);
+
+                    enemy.guard_projectiles.get(i).physics();
+
+
+                    if (enemy.guard_projectiles.get(i).toRemove)
+                        enemy.guard_projectiles.remove(enemy.guard_projectiles.get(i));
+                }
+            }
+        }
 
 
 
@@ -307,18 +329,18 @@ public class GameView extends SurfaceView implements Runnable
 
 
             //background
-            screenCanvas.drawBitmap(ground.backgroundBitmap, 0, 0, paint);//background
+            screenCanvas.drawBitmap(ground.backgroundBitmap, 0, 0, paint1);//background
             // wave number
-            screenCanvas.drawText((game.currentWave + 1) + " - " + 10, screenX - (15 * getResources().getDisplayMetrics().scaledDensity) * 7 , player.meter, paint);
+            screenCanvas.drawText((game.currentWave + 1) + " - " + 10, screenX - (15 * getResources().getDisplayMetrics().scaledDensity) * 7 , player.meter, white_text_paint);
 
 
             // show skulls to later resurrect
             for (int i = 0; i < game.deadX.size(); i++)
-                screenCanvas.drawBitmap(game.skullBitmap, game.deadX.get(i), screenY - ground.height - screenY/ 40f, paint);
+                screenCanvas.drawBitmap(game.skullBitmap, game.deadX.get(i), screenY - ground.height - screenY/ 40f, paint1);
 
             // only when resurrected skeletons would be added
             for (int i = 0; i < game.skeletons.size(); i++)
-                screenCanvas.drawBitmap(game.skeletons.get(i).enemyBitmap, game.skeletons.get(i).x, screenY - ground.height - game.skeletons.get(i).height, paint);
+                screenCanvas.drawBitmap(game.skeletons.get(i).enemyBitmap, game.skeletons.get(i).x, screenY - ground.height - game.skeletons.get(i).height, paint1);
 
 
 
@@ -330,20 +352,25 @@ public class GameView extends SurfaceView implements Runnable
                 {
                     for (short j = 0; j < p_arr.get(i).dotArrayListX.size() - 2; j++) // draw *all* the dots of *all* projectiles | -2 for delay
                         screenCanvas.drawCircle(p_arr.get(i).dotArrayListX.get(j), p_arr.get(i).dotArrayListY.get(j),
-                                p_arr.get(i).width / 40f * j + 1, paint);
+                                p_arr.get(i).width / 40f * j + 1, paint2);
                     // cool idea:  * i * i when damage is boosted
 
 
-                    screenCanvas.drawBitmap(p_arr.get(i).projectileBitmap, p_arr.get(i).x, p_arr.get(i).y, paint);//ball
+                    if (player.damage == 1)
+                        screenCanvas.drawBitmap(p_arr.get(i).projectileBitmap, p_arr.get(i).x, p_arr.get(i).y, paint2);
+                    else if (player.damage == 2)
+                        screenCanvas.drawBitmap(p_arr.get(i).projectile1Bitmap, p_arr.get(i).x, p_arr.get(i).y, paint2);
+                    else
+                        screenCanvas.drawBitmap(p_arr.get(i).projectile2Bitmap, p_arr.get(i).x, p_arr.get(i).y, paint2);
                 }
             }
 
 
             //ground
-            screenCanvas.drawBitmap(ground.groundBitmap, ground.x, ground.y, paint);//ground
+            screenCanvas.drawBitmap(ground.groundBitmap, ground.x, ground.y, paint1);//ground
 
             //cross-hair
-            screenCanvas.drawBitmap(player.crosshairBitmap, player.aimX, player.aimY, paint);//ball
+            screenCanvas.drawBitmap(player.crosshairBitmap, player.aimX, player.aimY, paint2);//ball
 
 
 
@@ -351,26 +378,31 @@ public class GameView extends SurfaceView implements Runnable
             if ( player.iteration_of_throw != -1 ) // if (ever thrown), otherwise bob is shown to be throwing in the first iterations.
             {
                 if ((player.iteration_of_throw + (100 / sleep_millis) > iteration) && game.isInWave)
-                    screenCanvas.drawBitmap(player.bobThrowingBitmap, player.x, player.y, paint);
+                    screenCanvas.drawBitmap(player.bobThrowingBitmap, player.x, player.y, paint1);
                 else
-                    screenCanvas.drawBitmap(player.bobNormalBitmap, player.x, player.y, paint);
+                    screenCanvas.drawBitmap(player.bobNormalBitmap, player.x, player.y, paint1);
             }
             else
-                screenCanvas.drawBitmap(player.bobNormalBitmap, player.x, player.y, paint);
+                screenCanvas.drawBitmap(player.bobNormalBitmap, player.x, player.y, paint1);
 
             // heart system
-            for (int i = 1; i <= player.maxHearts; i++)
-                if (i > player.hearts)
-                    screenCanvas.drawBitmap(player.emptyHeartBitmap, i * player.crosshairSize, player.crosshairSize, paint);
-                else
-                    screenCanvas.drawBitmap(player.heartBitmap, i * player.crosshairSize, player.crosshairSize, paint);
+            for (int i = 1; i <= player.maxHearts; i++) {
+                if (player.hearts <= 0)
+                    screenCanvas.drawBitmap(player.emptyHeartBitmap, i * player.crosshairSize, player.crosshairSize, paint1);
+                else {
+                    if (i > player.hearts)
+                        screenCanvas.drawBitmap(player.emptyHeartBitmap, i * player.crosshairSize, player.crosshairSize, paint1);
+                    else
+                        screenCanvas.drawBitmap(player.heartBitmap, i * player.crosshairSize, player.crosshairSize, paint1);
+                }
+            }
 
             // ammo system
             for (int i = 1; i <= player.maxAmmo; i++)
                 if (i > player.ammo)
-                    screenCanvas.drawBitmap(player.emptyAmmoBitmap, i * player.crosshairSize, player.crosshairSize * 2.5f, paint);
+                    screenCanvas.drawBitmap(player.emptyAmmoBitmap, i * player.crosshairSize, player.crosshairSize * 2.5f, paint1);
                 else
-                    screenCanvas.drawBitmap(player.ammoBitmap, i * player.crosshairSize, player.crosshairSize * 2.5f, paint);
+                    screenCanvas.drawBitmap(player.ammoBitmap, i * player.crosshairSize, player.crosshairSize * 2.5f, paint1);
 
 
 
@@ -381,15 +413,21 @@ public class GameView extends SurfaceView implements Runnable
                 {
                     Enemy enemy = game.waves.get(game.currentWave).get(enemy_index);
 
-                    screenCanvas.drawBitmap(enemy.enemyBitmap, enemy.x, enemy.y, paint);
-                    enemy.displayHearts(screenCanvas, paint);
+                    if (enemy.guard_projectiles.size() > 0)
+                        for (int i = 0; i < enemy.guard_projectiles.size(); i++)
+                            screenCanvas.drawBitmap(enemy.guard_projectiles.get(i).guardProjectileBitmap, enemy.guard_projectiles.get(i).x,
+                                    enemy.guard_projectiles.get(i).y, paint1);
+
+                    screenCanvas.drawBitmap(enemy.enemyBitmap, enemy.x, enemy.y, paint1);
+                    enemy.displayHearts(screenCanvas, white_text_paint);
                 }
 
-                screenCanvas.drawCircle(screenX/2f - game.circleRadius*0.7f/2, screenY/10f , game.circleRadius * 0.7f ,game.res_paint);
+                screenCanvas.drawCircle(screenX/2f - game.circleRadius/2f, screenY/10f , game.circleRadius ,game.res_paint);
 
-                screenCanvas.drawText("Resurrect", screenX/2f - game.circleRadius*0.7f/2 +
-                                ((game.circleRadius*0.7f*2 - ("Resurrect".length() * paint1.getTextSize())))/2,
-                        screenY/10f + paint1.getTextSize()/2, paint1);
+                float resurrectTextSize = game.text_paint.measureText("Resurrect");
+
+                screenCanvas.drawText("Resurrect", screenX/2f - game.circleRadius/2f - resurrectTextSize /2,
+                        screenY/10f + paint1.getTextSize()/2, game.text_paint);
 
             }
 
@@ -397,7 +435,9 @@ public class GameView extends SurfaceView implements Runnable
             else // -> between waves
             {
                 afterWaveScreen(screenCanvas, player.xp);   // show upgrades and stuff
-                screenCanvas.drawText("(i)  " + game.explainUpgrade, screenX / 2f, player.y, paint); // explain upgrades
+
+                if (game.currentWave < 9)
+                    screenCanvas.drawText("(i)  " + game.explainUpgrade, screenX / 2f, player.y, game.text_paint); // explain upgrades
             }
 
 
@@ -409,7 +449,6 @@ public class GameView extends SurfaceView implements Runnable
 
 
     private void sleep() {
-
         try {
             Thread.sleep(sleep_millis);
         } catch (InterruptedException e) {
@@ -422,6 +461,22 @@ public class GameView extends SurfaceView implements Runnable
                 p_arr.get(i).time += sleep_millis/1000f;
             else
                 p_arr.get(i).time = 0;
+        }
+
+        for (int enemy_index = 0; enemy_index < game.waves.get(game.currentWave).size(); enemy_index++) {
+
+            if (game.waves.get(game.currentWave).get(enemy_index).type.equals("guard"))
+            {
+                Enemy guard = game.waves.get(game.currentWave).get(enemy_index);
+
+                for (int i = 0; i < guard.guard_projectiles.size(); i++)
+                {
+                    if (guard.guard_projectiles.get(i).isThrown)
+                        guard.guard_projectiles.get(i).time += sleep_millis / 1000f;
+                    else
+                        guard.guard_projectiles.get(i).time = 0;
+                }
+            }
         }
     }
 
@@ -437,6 +492,7 @@ public class GameView extends SurfaceView implements Runnable
     @Override
     public boolean onTouchEvent (MotionEvent event) // this is a method that helps me detect touch.
     {
+
         switch (event.getAction()) // down/move/up
         {
             case MotionEvent.ACTION_DOWN:// started touch
@@ -444,7 +500,7 @@ public class GameView extends SurfaceView implements Runnable
                 if ( game.isInWave )
                 {
                     if (player.ammo >= 1)
-                        p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, ground.height, metersInScreen));
+                        p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, ground.height, metersInScreen,1));
                     // I need to put this ?? because if you spam there's a bug caused by the delay in ACTION_DOWN and ACTION_UP
 
                     if (!p_arr.isEmpty())
@@ -478,8 +534,7 @@ public class GameView extends SurfaceView implements Runnable
 
 
                 //explaining system
-                else
-                if ( ! game.didContinue )
+                else if ( ! game.didContinue )
                     for (int i = 0; i < game.upgrades.get(game.currentWave).size(); i++)
                         if (event.getX() >= game.cx_arr.get(i) - game.circleRadius && event.getX() <= game.cx_arr.get(i) + game.circleRadius
                                 && event.getY() >= game.cy_arr.get(i) - game.circleRadius && event.getY() <= game.cy_arr.get(i) + game.circleRadius)
@@ -607,7 +662,8 @@ public class GameView extends SurfaceView implements Runnable
 
         // for each skull -> create skeleton
         for (int i = 0; i < game.deadX.size(); i++)
-            game.skeletons.add(new Enemy(getResources(), screenX, screenY, ground.height, (byte) 25, 1, "skeleton", game.deadX.get(i)));
+            game.skeletons.add(new Enemy(getResources(), screenX, screenY, ground.height,
+                    (byte) 25, 1, "skeleton", game.deadX.get(i), player.x));
 
         // no longer needed
         game.deadX.clear();
@@ -622,61 +678,70 @@ public class GameView extends SurfaceView implements Runnable
 
 
 
-
-
-
     public void afterWaveScreen (Canvas canvas, int playerXP)
     {
-        // draw upgrade bubbles of current wave;
-        for (int upgrade_index = 0; upgrade_index < game.upgrades.get(game.currentWave).size(); upgrade_index++)
-        {
-            // start x is: screenX / 8f | start x of next: a radius away from end of last one
-            // check if all the upgrades fit in the screen
-            if (screenX / 8f + (game.circleRadius * 3 * upgrade_index) < screenX) {
-                game.cx = screenX / 8f + (game.circleRadius * 3 * upgrade_index);
-                game.cy = screenY / 3f;
-            } else { // (lower)
-                if (game.whenOutOfscreen == 0)
-                    game.whenOutOfscreen = upgrade_index;
+        if (game.currentWave == 9)
+            canvas.drawText("I'm gonna need to find a new town...",
+                    screenX/2f - "I'm gonna need to find a new town...".length() /2f * game.textSize, screenY/2f, game.text_paint );
 
-                game.cx = screenX / 8f + (game.circleRadius * 3 * (upgrade_index - game.whenOutOfscreen));
-                game.cy = 2 * screenY / 3f;
+        else {
+            // draw upgrade bubbles of current wave;
+            for (int upgrade_index = 0; upgrade_index < game.upgrades.get(game.currentWave).size(); upgrade_index++) {
+                if (player.hearts == player.maxHearts && game.upgrades.get(game.currentWave).get(upgrade_index).equals("Heal"))
+                    continue;
+                // start x is: screenX / 8f | start x of next: a radius away from end of last one
+                // check if all the upgrades fit in the screen
+
+                if (screenX / 8f + (game.circleRadius * 3 * upgrade_index) < screenX) {
+                    game.cx = screenX / 8f + (game.circleRadius * 3 * upgrade_index);
+                    game.cy = screenY / 3f;
+                }
+                else { // (lower)
+                    if (game.whenOutOfScreen == 0)
+                        game.whenOutOfScreen = upgrade_index;
+
+                    game.cx = screenX / 8f + (game.circleRadius * 3 * (upgrade_index - game.whenOutOfScreen));
+                    game.cy = 2 * screenY / 3f;
+                }
+
+
+                // for every circle there's a (x,y) point of the middle point
+                game.cx_arr.add(game.cx);
+                game.cy_arr.add(game.cy); // for clicking
+
+
+                if (game.upgrades_costs.get(game.currentWave).size() > upgrade_index) {
+                    // to show the user that if they don't have enough XP they can't upgrade
+                    if (player.xp < game.upgrades_costs.get(game.currentWave).get(upgrade_index))
+                        game.circle_paint.setColor(Color.argb(100, 160, 60, 60));
+                    else
+                        game.circle_paint.setColor(Color.argb(100, 40, 160, 110));
+
+
+                    float xpTextSize = game.text_paint.measureText("xp: " + game.upgrades_costs.get(game.currentWave).get(upgrade_index));
+
+                    canvas.drawText("xp: " + game.upgrades_costs.get(game.currentWave).get(upgrade_index),
+                            game.cx - xpTextSize / 2,
+                            game.cy - game.circleRadius - game.scaledSizeInPixels / 2, game.text_paint);
+                }
+
+                canvas.drawCircle(game.cx, game.cy, game.circleRadius, game.circle_paint); // x,y are the middle points! not up-left!!
+
+
+                // text in circle would be in the middle
+                canvas.drawText(game.upgrades.get(game.currentWave).get(upgrade_index),
+                        game.cx - game.circleRadius + (game.circleRadius * 2 - game.upgrades.get(game.currentWave).get(upgrade_index).length() * game.textSize) / 2f,
+                        game.cy + game.textSize / 2f, game.text_paint);
+
+                canvas.drawText("xp: " + playerXP, screenX / 2f, 50, game.text_paint);
             }
-            // for every circle there's a (x,y) point of the middle point
-            game.cx_arr.add(game.cx);
-            game.cy_arr.add(game.cy); // for clicking
 
 
-            if (game.upgrades_costs.get(game.currentWave).size() > upgrade_index) {
-                // to show the user that if they don't have enough XP they can't upgrade
-                if (player.xp < game.upgrades_costs.get(game.currentWave).get(upgrade_index))
-                    game.circle_paint.setColor(Color.argb(100, 160, 60, 60));
-                else
-                    game.circle_paint.setColor(Color.argb(100, 40, 160, 110));
-
-                canvas.drawText("xp: " + game.upgrades_costs.get(game.currentWave).get(upgrade_index), game.cx - game.circleRadius, game.cy - game.circleRadius, game.text_paint);
-            }
-
-            canvas.drawCircle(game.cx, game.cy, game.circleRadius, game.circle_paint); // x,y are the middle points! not up-left!!
-
-
-            // text in circle would be in the middle
-            canvas.drawText(game.upgrades.get(game.currentWave).get(upgrade_index),
-                    game.cx - game.circleRadius + (game.circleRadius * 2 - game.upgrades.get(game.currentWave).get(upgrade_index).length() * game.textSize) / 2f,
-                    game.cy + game.textSize / 2f, game.text_paint);
-
-
-
-
-            canvas.drawText("xp: " + playerXP, screenX / 2f, 50, game.text_paint);
-
-
-
-            // 'continue' button
+            // show 'continue' button regardless of how many upgrades are available
             game.Ccx = screenX - game.circleRadius * 2;
             game.Ccy = screenY - game.circleRadius * 2;
 
-            game.circle_paint.setColor(Color.argb(100, 160, 60, 60));
+            game.circle_paint.setColor(Color.argb(150, 180, 60, 60));
             canvas.drawCircle(game.Ccx, game.Ccy, game.circleRadius, game.circle_paint);
             game.circle_paint.setColor(Color.argb(100, 40, 160, 110)); // upgrades
 
@@ -718,11 +783,9 @@ public class GameView extends SurfaceView implements Runnable
                         player.xp -= game.upgrades_costs.get(game.currentWave).get((indexOfUpgrade));
 
                         player.hearts++;
-                        game.upgrades.get(game.currentWave).remove("Health");
-                        game.upgrades_costs.get(game.currentWave).remove(game.upgrades_costs.get(game.currentWave).get(indexOfUpgrade));
-
-
+                        game.upgrades.get(game.currentWave).remove("Heal");
                         break;
+
                     case "Recharge":
                         player.maxAmmo++;
 
@@ -731,7 +794,23 @@ public class GameView extends SurfaceView implements Runnable
                         game.upgrades.get(game.currentWave).remove("Recharge");
                         game.upgrades_costs.get(game.currentWave).remove(game.upgrades_costs.get(game.currentWave).get(indexOfUpgrade));
                         break;
+
+                    case "Damage":
+                        player.damage++;
+
+                        player.xp -= game.upgrades_costs.get(game.currentWave).get((indexOfUpgrade));
+
+                        game.upgrades.get(game.currentWave).remove("Recharge");
+                        game.upgrades_costs.get(game.currentWave).remove(game.upgrades_costs.get(game.currentWave).get(indexOfUpgrade));
+
+                        if (player.damage == 2)
+                            paint2.setARGB(255, 222, 172, 9);
+
+                        if (player.damage == 3)
+                            paint2.setARGB(255, 120, 0, 0);
+                        break;
                 }
+                game.upgradesBought.add(upgrade_name);
             }
         }
     }
@@ -760,7 +839,7 @@ public class GameView extends SurfaceView implements Runnable
                     break;
 
                 case "Damage":
-                    game.explainUpgrade = "x2 damage";
+                    game.explainUpgrade = "+1 damage";
                     break;
 
                 case "Freeze": // show icicle effect above the head of the entity

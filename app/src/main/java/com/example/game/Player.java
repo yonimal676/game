@@ -3,6 +3,8 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import java.util.ArrayList;
+
 public class Player
 {
 
@@ -31,6 +33,7 @@ public class Player
     int AmmoRegenerationPace;
     Bitmap ammoBitmap;
     Bitmap emptyAmmoBitmap;
+    byte damage;
 
 
     int xp;
@@ -39,10 +42,10 @@ public class Player
 
 
 
-
     public Player (Resources res, int screenX, int screenY, int groundHeight, byte metersInTheScreen)
     {
         xp = 0;
+        damage = 1;
 
         meter = (float) screenX / metersInTheScreen;
 

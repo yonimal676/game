@@ -14,6 +14,9 @@ public class Projectile
     float x, y;
     short width, height;
     Bitmap projectileBitmap;
+    Bitmap projectile1Bitmap;
+    Bitmap projectile2Bitmap;
+    Bitmap guardProjectileBitmap;
 
     //physics
     float angle;
@@ -29,55 +32,70 @@ public class Projectile
     ArrayList<Float> dotArrayListY;
 
     boolean toRemove; // for removal from the array list in GameView
-    byte damage;
 
 
     float screenX, screenY, groundHeight;
+
+    int type; // 1 = normal, 2 = guard
+
 
 
     /* TODO: don't remove the projectile even when needed so you can still see the path, instead make the bitmap null, and damage = 0 */
 
 
-    public Projectile (Resources res, int screenX, int screenY, float aimX, float aimY, float groundHeight, byte metersInTheScreen)
+    public Projectile (Resources res, int screenX, int screenY, float aimX, float aimY, float groundHeight, byte metersInTheScreen, int type)
     {
         this.screenX = screenX;
         this.screenY = screenY;
         this.groundHeight = groundHeight;
+        this.type = type;
         toRemove = false;
 
 
         meter = (float) screenX / metersInTheScreen; // TODO: remember that if you scale this up, the ball will NOT move in the same ratio!!
 
-        isThrown = false;
-
-        x = aimX ;
-        y = aimY;
-
-
         width = (short) (0.35 * meter);
         height = (short) (0.35 * meter);
 
 
-        // Draw the ball:
         projectileBitmap = BitmapFactory.decodeResource(res, R.drawable.projectile);
         projectileBitmap = Bitmap.createScaledBitmap(projectileBitmap, width, height, false);
 
+        projectile1Bitmap = BitmapFactory.decodeResource(res, R.drawable.projectile2);
+        projectile1Bitmap = Bitmap.createScaledBitmap(projectile1Bitmap, width, height, false);
+
+        projectile2Bitmap = BitmapFactory.decodeResource(res, R.drawable.projectile3);
+        projectile2Bitmap = Bitmap.createScaledBitmap(projectile2Bitmap, width, height, false);
 
 
+        guardProjectileBitmap = BitmapFactory.decodeResource(res, R.drawable.guard_projectile);
+        guardProjectileBitmap = Bitmap.createScaledBitmap(guardProjectileBitmap, width, height, false);
 
-        // Physics-related stuff: todo -> NOT NEGATIVE GRAVITY,  also:   ball.vy = ball.v0y + ball.GRAVITY * ball.time;
         GRAVITY =  9.8f * 6.3f * meter; // should be negative due to the earth's gravity pulling it downwards.
-        v = 25 * 1.4f * meter; // also max pull | meters per second.
+        v = 28 * 1.4f * meter; // also max pull | meters per second.
         time = 0;
 
 
+        if (type == 1) {
+            isThrown = false;
 
-        dotArrayListX = new ArrayList<>();
-        dotArrayListY = new ArrayList<>();
+            x = aimX;
+            y = aimY;
+
+            dotArrayListX = new ArrayList<>();
+            dotArrayListY = new ArrayList<>();
+        }
 
 
+        else if (type == 2)
+        {
+            isThrown = true;
 
-        damage = 1;
+            x = aimX;
+            y = aimY;
+        }
+
+
 
     }
 
@@ -96,25 +114,32 @@ public class Projectile
 
 
 
-    public void didHit (int groundHeight, Enemy enemy)
+
+
+    public void didHit (int groundHeight, Enemy enemy, byte damage, Player bob)
     {
 
-        // hit enemy
-        if (enemy != null)
-            if (x + width >= enemy.x && x <= enemy.x + enemy.width && y + height >= enemy.y && y <= enemy.y + enemy.height)
-            {
-                if (enemy.type.equals("crusader"))
-                {
-                    if ( ! enemy.shielded) {
-                        enemy.hearts -= damage;
-                        enemy.shielded = true;
+        if (type == 1) {
+            if (enemy != null)
+                if (x + width >= enemy.x && x <= enemy.x + enemy.width && y + height >= enemy.y && y <= enemy.y + enemy.height) {
+                    if (enemy.type.equals("crusader")) {
+                        if (!enemy.shielded) {
+                            enemy.hearts -= damage;
+                            enemy.shielded = true;
+                        }
                     }
-                }
-                else
-                    enemy.hearts -= damage;
+                    else
+                        enemy.hearts -= damage;
 
+                    toRemove = true;
+                    return;
+                }
+        }
+
+        else if (type == 2)
+            if (x + width >= bob.x && x <= bob.x + bob.width && y + height >= bob.y && y <= bob.y + bob.height) {
+                bob.hearts --;
                 toRemove = true;
-                return;
             }
 
         // hit ground
@@ -127,6 +152,7 @@ public class Projectile
         vy = v0y + GRAVITY * time;
 
         x = initialX + vx * time; // x0 + Vx * t
+
         y = initialY + vy * time - GRAVITY * time * time / 2; // y0 + Vy * t - g * t² / 2
     }
 
