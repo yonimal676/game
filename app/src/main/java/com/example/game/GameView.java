@@ -249,11 +249,11 @@ public class GameView extends SurfaceView implements Runnable
 
                 // limit dot arrays
                 p_arr.get(i).dotArrayListX.add(p_arr.get(i).x + p_arr.get(i).width / 2);
-                if (p_arr.get(i).dotArrayListX.size() > 15)
+                if (p_arr.get(i).dotArrayListX.size() > 30)
                     p_arr.get(i).dotArrayListX.remove(0);
 
                 p_arr.get(i).dotArrayListY.add(p_arr.get(i).y + p_arr.get(i).height / 2);
-                if (p_arr.get(i).dotArrayListY.size() > 15)
+                if (p_arr.get(i).dotArrayListY.size() > 30)
                     p_arr.get(i).dotArrayListY.remove(0);
 
             }
@@ -350,10 +350,23 @@ public class GameView extends SurfaceView implements Runnable
             {
                 if (p_arr.get(i).isThrown)
                 {
-                    for (short j = 0; j < p_arr.get(i).dotArrayListX.size() - 2; j++) // draw *all* the dots of *all* projectiles | -2 for delay
-                        screenCanvas.drawCircle(p_arr.get(i).dotArrayListX.get(j), p_arr.get(i).dotArrayListY.get(j),
-                                p_arr.get(i).width / 40f * j + 1, paint2);
-                    // cool idea:  * i * i when damage is boosted
+                    for (int j = 0; j < p_arr.get(i).dotArrayListX.size() - 2; j++) // draw *all* the dots of *all* projectiles | -2 for delay
+                    {
+                        screenCanvas.drawCircle( p_arr.get(i).dotArrayListX.get(j), p_arr.get(i).dotArrayListY.get(j),
+                                p_arr.get(i).width / 40f * (float) Math.sqrt(j) + 1, paint2);
+                        // cool idea:  * i * i when damage is boosted
+
+
+                        p_arr.get(i).dotArrayListY.set(j, p_arr.get(i).dotArrayListY.get(j) + 5);
+
+                        if (Math.ceil(p_arr.get(i).dotArrayListX.get(j)) % 4 == 0)
+                            p_arr.get(i).dotArrayListX.set(j, p_arr.get(i).dotArrayListX.get(j) - 2);
+                        else
+                            p_arr.get(i).dotArrayListX.set(j, p_arr.get(i).dotArrayListX.get(j) + 2);
+
+
+
+                    }
 
 
                     if (player.damage == 1)
@@ -413,7 +426,7 @@ public class GameView extends SurfaceView implements Runnable
                 {
                     Enemy enemy = game.waves.get(game.currentWave).get(enemy_index);
 
-                    if (enemy.guard_projectiles.size() > 0)
+                    if (enemy.guard_projectiles != null && enemy.guard_projectiles.size() > 0)
                         for (int i = 0; i < enemy.guard_projectiles.size(); i++)
                             screenCanvas.drawBitmap(enemy.guard_projectiles.get(i).guardProjectileBitmap, enemy.guard_projectiles.get(i).x,
                                     enemy.guard_projectiles.get(i).y, paint1);
@@ -439,6 +452,10 @@ public class GameView extends SurfaceView implements Runnable
                 if (game.currentWave < 9)
                     screenCanvas.drawText("(i)  " + game.explainUpgrade, screenX / 2f, player.y, game.text_paint); // explain upgrades
             }
+
+            if (player.hasMagnet)
+                screenCanvas.drawBitmap(player.magnetBitmap, player.x + (player.width-player.crosshairSize)/2,
+                        player.y - player.crosshairSize, paint1);
 
 
             getHolder().unlockCanvasAndPost(screenCanvas);
@@ -751,6 +768,8 @@ public class GameView extends SurfaceView implements Runnable
     }
 
 
+    float distance (float x1, float y1, float x2, float y2)
+    { return (float) Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));}
 
     public void upgrade ( String upgrade_name )
     {
@@ -779,6 +798,7 @@ public class GameView extends SurfaceView implements Runnable
                         game.upgrades_costs.get(game.currentWave).remove(game.upgrades_costs.get(game.currentWave).get(indexOfUpgrade));
 
                         break;
+
                     case "Heal":
                         player.xp -= game.upgrades_costs.get(game.currentWave).get((indexOfUpgrade));
 
@@ -800,7 +820,7 @@ public class GameView extends SurfaceView implements Runnable
 
                         player.xp -= game.upgrades_costs.get(game.currentWave).get((indexOfUpgrade));
 
-                        game.upgrades.get(game.currentWave).remove("Recharge");
+                        game.upgrades.get(game.currentWave).remove("Damage");
                         game.upgrades_costs.get(game.currentWave).remove(game.upgrades_costs.get(game.currentWave).get(indexOfUpgrade));
 
                         if (player.damage == 2)
@@ -809,8 +829,19 @@ public class GameView extends SurfaceView implements Runnable
                         if (player.damage == 3)
                             paint2.setARGB(255, 120, 0, 0);
                         break;
+
+                    case "Magnet":
+                        player.hasMagnet = true;
+
+                        player.xp -= game.upgrades_costs.get(game.currentWave).get((indexOfUpgrade));
+
+                        game.upgrades.get(game.currentWave).remove("Magnet");
+                        game.upgrades_costs.get(game.currentWave).remove(game.upgrades_costs.get(game.currentWave).get(indexOfUpgrade));
+
+
+                        break;
+
                 }
-                game.upgradesBought.add(upgrade_name);
             }
         }
     }

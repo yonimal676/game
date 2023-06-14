@@ -37,6 +37,8 @@ public class Player
 
 
     int xp;
+    boolean hasMagnet;
+    Bitmap magnetBitmap;
 
 
 
@@ -46,6 +48,7 @@ public class Player
     {
         xp = 0;
         damage = 1;
+        hasMagnet = false;
 
         meter = (float) screenX / metersInTheScreen;
 
@@ -67,7 +70,6 @@ public class Player
         bobThrowingBitmap = Bitmap.createScaledBitmap(bobThrowingBitmap, (int) width, (int) height, false);
 
 
-
         aimX = (float) ( midX + Math.cos(45) * height);
         aimY = (float) ( midY - Math.sin(45) * height);// so that the starting position would be similar to the first shot
 
@@ -77,6 +79,10 @@ public class Player
 
         crosshairBitmap = BitmapFactory.decodeResource(res, R.drawable.crosshair);
         crosshairBitmap = Bitmap.createScaledBitmap(crosshairBitmap, crosshairSize, crosshairSize, false);
+
+        magnetBitmap = BitmapFactory.decodeResource(res, R.drawable.magnet);
+        magnetBitmap = Bitmap.createScaledBitmap(magnetBitmap, crosshairSize, crosshairSize, false);
+
 
         maxHearts = 3;
         hearts = 3;

@@ -52,7 +52,7 @@ public class Enemy
         shield_counter = 100;
         shielded = false;
         toShowShot = false;
-        shootFrequency = 220;
+        shootFrequency = 150;
 
         switch (type)
         {
@@ -63,7 +63,10 @@ public class Enemy
                 hearts = 1;
                 x = screenX - width + (relativeInWave * width * 1.5f);
                 y = screenY - groundHeight - height;
-                speed = 400 / meter; // pixels per iteration
+
+//                speed = 400 / meter; // pixels per iteration
+                speed = 0;
+
 
                 added_damage = 0;
 

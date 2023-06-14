@@ -42,7 +42,6 @@ public class Game
     boolean didResurrect;
 
     int canResurrect;
-    ArrayList<String> upgradesBought;
     float bobX, bobY;
 
 
@@ -87,7 +86,6 @@ public class Game
         cx_arr = new ArrayList<>();
         cy_arr = new ArrayList<>();
         upgrades_costs = new ArrayList<>();
-        upgradesBought = new ArrayList<>();
 
 
         for (int i = 1; i <= 10; i++)
@@ -95,19 +93,14 @@ public class Game
 
 
 
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "guard",0, bobX));
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2, "guard",0, bobX));
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "guard",0, bobX));
-
-      /*  waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0, bobX));
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 15, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 16, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 17, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 19, "regular",0, bobX));
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 20, "regular",0, bobX));*/
-
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 20, "regular",0, bobX));
 
 
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0, bobX));
@@ -157,10 +150,12 @@ public class Game
 
 
 
+        upgrades.get(0).add("Magnet");
         upgrades.get(0).add("Health");
         upgrades.get(0).add("Recharge");
         upgrades.get(0).add("Heal");
         upgrades_costs.get(0).add(25);
+        upgrades_costs.get(0).add(50);
         upgrades_costs.get(0).add(25);
         upgrades_costs.get(0).add(25);
 
@@ -169,14 +164,45 @@ public class Game
         upgrades.get(1).add("Health");
         upgrades.get(1).add("Recharge");
         upgrades.get(1).add("Heal");
-        upgrades_costs.get(1).add(75);
-        upgrades_costs.get(1).add(25);
-        upgrades_costs.get(1).add(25);
-        upgrades_costs.get(1).add(25);
+        upgrades_costs.get(1).add(125);
+        upgrades_costs.get(1).add(55);
+        upgrades_costs.get(1).add(133);
+        upgrades_costs.get(1).add(65);
 
-        upgrades_costs.get(2).add(25);
-        upgrades_costs.get(3).add(25);
-        upgrades_costs.get(4).add(25);
+
+        upgrades.get(2).add("Freeze");
+        upgrades.get(2).add("Recharge");
+        upgrades.get(2).add("Heal");
+        upgrades_costs.get(2).add(135);
+        upgrades_costs.get(2).add(205);
+        upgrades_costs.get(2).add(120);
+
+
+
+        upgrades.get(3).add("Recharge");
+        upgrades.get(3).add("Bleed");
+        upgrades.get(3).add("Heal");
+        upgrades_costs.get(3).add(245);
+        upgrades_costs.get(3).add(165);
+        upgrades_costs.get(3).add(145);
+
+
+        upgrades.get(4).add("Damage");
+        upgrades.get(4).add("Recharge");
+        upgrades.get(4).add("Heal");
+        upgrades_costs.get(4).add(315);
+        upgrades_costs.get(4).add(315);
+        upgrades_costs.get(4).add(215);
+
+
+
+
+        upgrades.get(5).add("Recharge");
+        upgrades.get(6).add("Recharge");
+        upgrades.get(7).add("Recharge");
+        upgrades.get(8).add("Recharge");
+        upgrades.get(9).add("Recharge");
+
         upgrades_costs.get(5).add(25);
         upgrades_costs.get(6).add(25);
         upgrades_costs.get(7).add(25);
@@ -190,14 +216,6 @@ public class Game
 
 
 
-        upgrades.get(2).add("Recharge");
-        upgrades.get(3).add("Recharge");
-        upgrades.get(4).add("Recharge");
-        upgrades.get(5).add("Recharge");
-        upgrades.get(6).add("Recharge");
-        upgrades.get(7).add("Recharge");
-        upgrades.get(8).add("Recharge");
-        upgrades.get(9).add("Recharge");
 
 
 
