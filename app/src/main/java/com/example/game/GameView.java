@@ -1,10 +1,6 @@
 
 /* TODO:
 
-path missing a dot
-projectile occasionally teleports
-when shooting fast and to very different directions, projectile is seen once at the previous aim(x,y)
-touching slightly at the beginning of the game doesn't shoot
 wizard enemy (?)
 more upgrades
 make the game good
@@ -629,9 +625,40 @@ public class GameView extends SurfaceView implements Runnable
                         }
                     }
 
+
                     // shoot !
+
                     else if (player.ammo >= 1)
                     {
+                        p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, ground.height, metersInScreen,1));
+                        // I need to put this ?? because if you spam there's a bug caused by the delay in ACTION_DOWN and ACTION_UP
+
+
+
+                        angle_of_touch = p_arr.get(p_arr.size() - 1).findAngle(event.getX(), event.getY(), player.midX, player.midY);
+                        quarterOfThrow();
+
+                        px = (float) Math.abs(Math.cos(angle_of_touch) * player.height);
+                        py = (float) Math.abs(Math.sin(angle_of_touch) * player.height);
+                        //  perpendicular (ניצב), x- adjacent (ליד), y - opposite (מול)
+
+
+                        switch (quarter) {
+                            case 1:
+                                player.setCrosshairPosition(player.midX + px, player.midY - py);
+                                break;
+                            case 2:
+                                player.setCrosshairPosition(player.midX - px, player.midY - py);
+                                break;
+                            case 3:
+                                player.setCrosshairPosition(player.midX - px, player.midY + py);
+                                break;
+                            case 4:
+                                player.setCrosshairPosition(player.midX + px, player.midY + py);
+                                break;
+                        }
+
+
                         player.ammo--;
 
                         if (p_arr.size() > 0)
@@ -649,7 +676,6 @@ public class GameView extends SurfaceView implements Runnable
                             p_arr.get(p_arr.size() - 1).v0y = (float) (-1 * Math.sin(angle_of_touch) * p_arr.get(p_arr.size() - 1).v);
                         }
                     }
-
                 }
 
 
