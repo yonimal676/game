@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 
 public class Projectile
 {
@@ -133,7 +132,7 @@ public class Projectile
                 if (((x + width >= enemy.x && x + width <= enemy.x) || ((x <= enemy.x + enemy.width && x >= enemy.x)) && y + height >= enemy.y))
                 {
                     if (bob.hasBleed)
-                        enemy.hasBleed = true;
+                        enemy.isBleeding = true;
 
                     if (enemy.type.equals("crusader")) {
                         if (!enemy.shielded) {

@@ -51,7 +51,7 @@ public class Player
     public Player (Resources res, int screenX, int screenY, int groundHeight, byte metersInTheScreen)
     {
         xp = 0;
-        damage = 1;
+        damage = 3;
 
         hasMagnet = true;
         hasBleed = true;
@@ -103,7 +103,7 @@ public class Player
         emptyHeartBitmap = Bitmap.createScaledBitmap(emptyHeartBitmap, crosshairSize, crosshairSize,false);
 
 
-        maxAmmo = 3;
+        maxAmmo = 7;
         ammo = 3;
         AmmoRegenerationPace = 20;
         iterationForAmmoRegeneration = AmmoRegenerationPace;

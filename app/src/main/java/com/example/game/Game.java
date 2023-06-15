@@ -7,7 +7,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 public class Game
 {
@@ -76,7 +75,7 @@ public class Game
 
 
         skullBitmap = BitmapFactory.decodeResource(res, R.drawable.skull);
-        skullBitmap = Bitmap.createScaledBitmap(skullBitmap, screenX/40 , screenY/40, false);
+        skullBitmap = Bitmap.createScaledBitmap(skullBitmap, screenX/30 , screenX/42, false);
 
 
 
@@ -89,56 +88,70 @@ public class Game
         upgrades_costs = new ArrayList<>();
 
 
-        for (int i = 1; i <= 10; i++)
+        for (int i = 0; i < 10; i++)
             waves.add(new ArrayList<>());
 
 
 
 
 
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0, bobX));
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2, "regular",0, bobX));
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "regular",0, bobX));
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4, "regular",0, bobX));
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 15, "regular",0, bobX));
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 16, "regular",0, bobX));
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 17, "regular",0, bobX));
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 19, "regular",0, bobX));
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 20, "regular",0, bobX));
 
 
-        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0, bobX));
-        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2, "regular",0, bobX));
-        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "regular",0, bobX));
-        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4, "ghost",0, bobX));
-        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 5, "ghost",0, bobX));
-        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 17, "ghost",0, bobX));
-        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 19, "ghost",0, bobX));
+
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 1, "seated_king",0, bobX));
+
+/*
+
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 1, "regular",0, bobX));
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 2, "regular",0, bobX));
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 3, "regular",0, bobX));
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 4, "regular",0, bobX));
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 15, "regular",0, bobX));
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 16, "regular",0, bobX));
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 17, "regular",0, bobX));
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 19, "regular",0, bobX));
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 20, "regular",0, bobX));
+
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 24, "ghost",0, bobX));
+*/
 
 
-        waves.get(2).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "giant",0, bobX));
-        waves.get(2).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "giant",0, bobX));
+
+
+
+
+        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 1, "regular",0, bobX));
+        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 2, "regular",0, bobX));
+        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 3, "regular",0, bobX));
+        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 4, "ghost",0, bobX));
+        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 5, "ghost",0, bobX));
+        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 17, "ghost",0, bobX));
+        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 19, "ghost",0, bobX));
+
+
+        waves.get(2).add(new Enemy(res, screenX, screenY, groundHeight, 1, "giant",0, bobX));
+        waves.get(2).add(new Enemy(res, screenX, screenY, groundHeight, 3, "giant",0, bobX));
 
 
         for (int i = 0; i < 20; i++)
-            waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, (i * 0.4f), "regular",0, bobX));
+            waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, (i * 0.4f), "regular",0, bobX));
 
 
-        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "giant",0, bobX));
-        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1.6f, "giant",0, bobX));
-        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2.5f, "giant",0, bobX));
-        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "giant",0, bobX));
+        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, 1, "giant",0, bobX));
+        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, 1.6f, "giant",0, bobX));
+        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, 2.5f, "giant",0, bobX));
+        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, 3, "giant",0, bobX));
 
 
-        waves.get(5).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "crusader",0, bobX));
+        waves.get(5).add(new Enemy(res, screenX, screenY, groundHeight, 1, "crusader",0, bobX));
 
-        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "giant",0, bobX));
-        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "crusader",0, bobX));
+        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, 1, "giant",0, bobX));
+        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, 3, "crusader",0, bobX));
 
         // ive yet to make these waves
-        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0, bobX));
-        waves.get(8).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0, bobX));
-        waves.get(9).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0, bobX));
+        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, 1, "regular",0, bobX));
+        waves.get(8).add(new Enemy(res, screenX, screenY, groundHeight, 1, "regular",0, bobX));
+        waves.get(9).add(new Enemy(res, screenX, screenY, groundHeight, 1, "regular",0, bobX));
 
 
 
@@ -262,7 +275,7 @@ public class Game
 
 
 
-    void crusader(Enemy crusader, float meter , Resources res)
+    void crusader(Enemy crusader , Resources res)
     {
 
 
@@ -277,14 +290,14 @@ public class Game
 
         if (!crusader.shielded)
         {
-            crusader.speed = 750/meter;
+            crusader.waitForJump = 20;
             crusader.added_damage = 3;
 
             crusader.enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.crusader_attack);
             crusader.enemyBitmap = Bitmap.createScaledBitmap(crusader.enemyBitmap, (int) crusader.width * 2, (int) crusader.height, false);
         }
         else {
-            crusader.speed = 500/meter;
+            crusader.waitForJump = 14;
             crusader.added_damage = 0;
 
             crusader.enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.crusader_shielded);
@@ -294,7 +307,7 @@ public class Game
     }
 
 
-    void guard (Enemy guard, Resources res, int screenX, int screenY, float groundHeight, byte metersInTheScreen, float x, float y)
+    void guard (Player bob, Enemy guard, Resources res, int screenX, int screenY, float groundHeight, byte metersInTheScreen, float x, float y)
     {
         Random random = new Random();
         double randomAngle = (4 +random.nextDouble()) * Math.PI / 4;
@@ -304,11 +317,11 @@ public class Game
         {
             guard.shootCounter--;
 
-            if (guard.shootCounter < guard.shootFrequency/ 0.5 && guard.toShowShot)
+            if (guard.shootCounter > 95)
+                guard.toShowShot = true;
+            else
                 guard.toShowShot = false;
         }
-
-
 
         else if (guard.shootCounter == 0) // shoot
         {
@@ -337,13 +350,33 @@ public class Game
         }
 
         if (guard.toShowShot) {
-            guard.enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.gaurd_throwing);
-            guard.enemyBitmap = Bitmap.createScaledBitmap(guard.enemyBitmap, (int) (guard.width * 1.3f), (int) (guard.width * 1.2f), false);
+            guard.enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.guard_throwing);
+            guard.enemyBitmap = Bitmap.createScaledBitmap(guard.enemyBitmap, (int) (guard.width * 1.5f), (int) (guard.height), false);
         } else {
             guard.enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.guard);
-            guard.enemyBitmap = Bitmap.createScaledBitmap(guard.enemyBitmap, (int) (guard.width * 1.2f), (int) guard.height, false);
+            guard.enemyBitmap = Bitmap.createScaledBitmap(guard.enemyBitmap, (int) (guard.width * 1.3f), (int) (guard.height), false);
         }
 
+
+
+
+        // guard shooting
+        for (int i = 0; i < guard.guard_projectiles.size(); i++) // updating the already-shot projectiles ( and their dots )
+        {
+            guard.guard_projectiles.get(i).didHit((int) groundHeight, null, bob.damage, bob);
+
+            guard.guard_projectiles.get(i).physics(false, 0,0);
+
+            if (guard.guard_projectiles.get(i).toRemove)
+                guard.guard_projectiles.remove(guard.guard_projectiles.get(i));
+        }
+
+
     }
+
+
+
+
+
 }
 

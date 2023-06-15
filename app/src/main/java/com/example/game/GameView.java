@@ -10,8 +10,6 @@ bob's hearts don't go down
 
 package com.example.game;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -19,7 +17,6 @@ import android.view.MotionEvent;
 import android.view.SurfaceView;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
 
 
 public class GameView extends SurfaceView implements Runnable
@@ -42,7 +39,7 @@ public class GameView extends SurfaceView implements Runnable
     private byte quarter;
     private ArrayList<Projectile> p_arr;
     private float px, py;
-    private final Ground ground;
+    private final background background;
     private Player player;
     private Game game;
     // Objects
@@ -67,9 +64,9 @@ public class GameView extends SurfaceView implements Runnable
 
         isPlaying = true;
 
-        ground = new Ground(getResources(), screenX, screenY, metersInScreen);
-        player = new Player(getResources(), screenX, screenY, ground.height, metersInScreen);
-        game = new Game(getResources(), screenX, screenY, ground.height, metersInScreen, player.x + player.width, player.y);
+        background = new background(getResources(), screenX, screenY);
+        player = new Player(getResources(), screenX, screenY, background.groundHeight, metersInScreen);
+        game = new Game(getResources(), screenX, screenY, background.groundHeight, metersInScreen, player.x + player.width, player.y);
 
         p_arr = new ArrayList<>();
 
@@ -133,9 +130,49 @@ public class GameView extends SurfaceView implements Runnable
 
             for (int enemy_index = 0; enemy_index < game.waves.get(game.currentWave).size(); enemy_index++) // enemies within wave
             {
-                Enemy enemy = game.waves.get(game.currentWave).get(enemy_index); // temp
 
-                enemy.x -= enemy.speed;
+                Enemy enemy = game.waves.get(game.currentWave).get(enemy_index);
+
+
+                if (enemy.type.equals("crusader"))
+                    game.crusader(enemy, getResources());
+
+                else if (enemy.type.equals("guard"))
+                    game.guard(player, enemy, getResources(), screenX, screenY, background.groundHeight, metersInScreen, enemy.x, enemy.y);
+
+                // king fits here
+
+
+                // ghosts don't jump, the hover.
+                if (enemy.type.equals("ghost"))
+                    enemy.x -= enemy.jumpLength / 1.2f;
+
+                else if (enemy.type.equals("crusader") && ! enemy.shielded)
+                    enemy.x -= enemy.jumpLength * 1.2f;
+
+                else if (enemy.jumpCounter == 0) // jump
+                {
+                    if (enemy.jumpIterations > 5)
+                    {
+                        enemy.x -= enemy.jumpLength;
+                        enemy.y -= enemy.jumpHeight;
+                    } else {
+                        enemy.x -= enemy.jumpLength;
+                        enemy.y += enemy.jumpHeight;
+                    }
+
+                    enemy.jumpIterations --;
+
+                    if (enemy.jumpIterations == 0)
+                        enemy.jumpCounter = enemy.waitForJump;
+                }
+                else {
+                    enemy.jumpCounter--;
+                    enemy.jumpIterations = 10;
+                }
+
+
+                // to diversify the xp system
                 enemy.XPWaveMultiplier(game.currentWave);
 
 
@@ -150,23 +187,26 @@ public class GameView extends SurfaceView implements Runnable
                 // check if the player hit, and update the projectile with/without magnet
                 for (int i = 0; i < p_arr.size(); i++ ) {
                     p_arr.get(i).physics(player.hasMagnet, enemy.x + enemy.width/2, enemy.y + enemy.height/2f);
-                    p_arr.get(i).didHit(ground.height, enemy, player.damage, player); // check if any projectile hit any enemy
+                    p_arr.get(i).didHit(background.groundHeight, enemy, player.damage, player); // check if any projectile hit any enemy
                 }
 
-                if (enemy.type.equals("crusader"))
-                    game.crusader(enemy, meter, getResources());
 
 
-                // TODO: WHERE SHOULD THIS BE???
+
+
+
                 for (int skeleton_index = 0; skeleton_index < game.skeletons.size(); skeleton_index++)
                 {
                     Enemy skeleton = game.skeletons.get(skeleton_index); // temp
 
                     if (skeleton.x + skeleton.width >= enemy.x && skeleton.x + skeleton.width <= enemy.x + enemy.width)
                     {
-                        if (enemy.hearts > skeleton.hearts)
+                        if (enemy.hearts == skeleton.hearts)
                         {
-                            enemy.hearts -= skeleton.hearts;
+                            skeleton.hearts = 0;
+                            enemy.hearts = 0;
+
+                            game.deadX.add(skeleton.x);
                             game.skeletons.remove(skeleton);
                         }
 
@@ -178,15 +218,16 @@ public class GameView extends SurfaceView implements Runnable
                         }
 
                         else {
-                            skeleton.hearts = 0;
-                            enemy.hearts = 0;
+                            enemy.hearts -= skeleton.hearts;
+
+                            game.deadX.add(skeleton.x);
                             game.skeletons.remove(skeleton);
                         }
                     }
 
                 }
 
-                if (player.hasBleed && enemy.hasBleed) {
+                if (player.hasBleed && enemy.isBleeding) {
                     if (enemy.bleed_frequency > 0)
                         enemy.bleed_frequency--;
                     else
@@ -225,13 +266,13 @@ public class GameView extends SurfaceView implements Runnable
 
             Enemy skeleton = game.skeletons.get(skeleton_index); // temp
 
-            skeleton.x += skeleton.speed; // starts at deadX
+            skeleton.x += 4; // starts at deadX
 
 
             // because you can kill skeletons too.
             for (int i = 0; i < p_arr.size(); i++)
             {
-                p_arr.get(i).didHit(ground.height, skeleton, player.damage, player);
+                p_arr.get(i).didHit(background.groundHeight, skeleton, player.damage, player);
 
                 if (p_arr.get(i).toRemove)
                     p_arr.remove(p_arr.get(i));
@@ -245,50 +286,28 @@ public class GameView extends SurfaceView implements Runnable
 
 
 
+        // update projectile regardless of enemies and isInWave
         for (int i = 0; i < p_arr.size(); i++) // updating the already-shot projectiles ( and their dots )
         {
-
             if (p_arr.get(i).isThrown)
             {
                 p_arr.get(i).physics(player.hasMagnet, screenX*2,screenY*2);
 
 
-                // limit dot arrays
-                p_arr.get(i).dotArrayListX.add(p_arr.get(i).x + p_arr.get(i).width / 2);
-                if (p_arr.get(i).dotArrayListX.size() > 30)
-                    p_arr.get(i).dotArrayListX.remove(0);
+                    // limit dot arrays
+                    p_arr.get(i).dotArrayListX.add(p_arr.get(i).x + p_arr.get(i).width / 2);
+                    if (p_arr.get(i).dotArrayListX.size() > 30)
+                        p_arr.get(i).dotArrayListX.remove(0);
 
-                p_arr.get(i).dotArrayListY.add(p_arr.get(i).y + p_arr.get(i).height / 2);
-                if (p_arr.get(i).dotArrayListY.size() > 30)
-                    p_arr.get(i).dotArrayListY.remove(0);
+                    p_arr.get(i).dotArrayListY.add(p_arr.get(i).y + p_arr.get(i).height / 2);
+                    if (p_arr.get(i).dotArrayListY.size() > 30)
+                        p_arr.get(i).dotArrayListY.remove(0);
 
             }
 
             if (p_arr.get(i).toRemove)
                 p_arr.remove(p_arr.get(i));
         }
-
-
-        // guard shooting
-        for (int enemy_index = 0; enemy_index < game.waves.get(game.currentWave).size(); enemy_index++)
-        {
-            if (game.waves.get(game.currentWave).get(enemy_index).type.equals("guard"))
-            {
-                Enemy enemy = game.waves.get(game.currentWave).get(enemy_index); // temp
-
-                game.guard(enemy, getResources(), screenX, screenY, ground.height, metersInScreen, enemy.x, enemy.y);
-
-
-                for (int i = 0; i < enemy.guard_projectiles.size(); i++) // updating the already-shot projectiles ( and their dots )
-                {
-                    enemy.guard_projectiles.get(i).didHit(ground.height, null, player.damage, player);
-
-                    if (enemy.guard_projectiles.get(i).toRemove)
-                        enemy.guard_projectiles.remove(enemy.guard_projectiles.get(i));
-                }
-            }
-        }
-
 
 
         // wave format (update / stop)
@@ -332,18 +351,22 @@ public class GameView extends SurfaceView implements Runnable
 
 
             //background
-            screenCanvas.drawBitmap(ground.backgroundBitmap, 0, 0, paint1);//background
+            screenCanvas.drawBitmap(background.backgroundBitmap, 0, 0, paint1);//background
+            background.drawParticles(screenCanvas);
+
+
             // wave number
             screenCanvas.drawText((game.currentWave + 1) + " - " + 10, screenX - (15 * getResources().getDisplayMetrics().scaledDensity) * 7 , player.meter, game.text_paint);
 
 
             // show skulls to later resurrect
             for (int i = 0; i < game.deadX.size(); i++)
-                screenCanvas.drawBitmap(game.skullBitmap, game.deadX.get(i), screenY - ground.height - screenY/ 40f, paint1);
+                screenCanvas.drawBitmap(game.skullBitmap, game.deadX.get(i),
+                        screenY - background.groundHeight - game.skullBitmap.getScaledHeight(screenCanvas), paint1);
 
             // only when resurrected skeletons would be added
             for (int i = 0; i < game.skeletons.size(); i++)
-                screenCanvas.drawBitmap(game.skeletons.get(i).enemyBitmap, game.skeletons.get(i).x, screenY - ground.height - game.skeletons.get(i).height, paint1);
+                screenCanvas.drawBitmap(game.skeletons.get(i).enemyBitmap, game.skeletons.get(i).x, screenY - background.groundHeight - game.skeletons.get(i).height, paint1);
 
 
 
@@ -399,9 +422,8 @@ public class GameView extends SurfaceView implements Runnable
                 }
             }
 
-
-            //ground
-            screenCanvas.drawBitmap(ground.groundBitmap, ground.x, ground.y, paint1);//ground
+            // ground
+            screenCanvas.drawBitmap(background.groundBitmap, 0, screenY - background.groundHeight, paint1);
 
             //cross-hair
             screenCanvas.drawBitmap(player.crosshairBitmap, player.aimX, player.aimY, paint1);//ball
@@ -454,7 +476,7 @@ public class GameView extends SurfaceView implements Runnable
 
                     screenCanvas.drawBitmap(enemy.enemyBitmap, enemy.x, enemy.y, paint1);
 
-                    if (player.hasBleed && enemy.hasBleed)
+                    if (player.hasBleed && enemy.isBleeding)
                         screenCanvas.drawBitmap(player.bloodBitmap, enemy.x + (enemy.width - player.bloodBitmap.getWidth()),
                                 enemy.y - player.bloodBitmap.getHeight(), paint1);
 
@@ -481,16 +503,16 @@ public class GameView extends SurfaceView implements Runnable
 
             if (player.hasMagnet)
                 screenCanvas.drawBitmap(player.magnetBitmap, (player.x - player.crosshairSize)/2 ,
-                        screenY - ground.height - 1.5f * player.crosshairSize, paint1);
+                        screenY - background.groundHeight - 1.5f * player.crosshairSize, paint1);
 
             if (player.hasBleed)
             {
                 if (player.hasMagnet)
                     screenCanvas.drawBitmap(player.bloodBitmap, (player.x - player.crosshairSize)/2,
-                            screenY - ground.height - 3 * player.crosshairSize, paint1);
+                            screenY - background.groundHeight - 3 * player.crosshairSize, paint1);
                 else
                     screenCanvas.drawBitmap(player.bloodBitmap, (player.x - player.crosshairSize)/2,
-                            screenY - ground.height - player.crosshairSize, paint1);
+                            screenY - background.groundHeight - player.crosshairSize, paint1);
             }
 
             getHolder().unlockCanvasAndPost(screenCanvas);
@@ -552,7 +574,7 @@ public class GameView extends SurfaceView implements Runnable
                 if ( game.isInWave )
                 {
                     if (player.ammo >= 1)
-                        p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, ground.height, metersInScreen,1));
+                        p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, background.groundHeight, metersInScreen,1));
                     // I need to put this ?? because if you spam there's a bug caused by the delay in ACTION_DOWN and ACTION_UP
 
                     if (!p_arr.isEmpty())
@@ -664,7 +686,7 @@ public class GameView extends SurfaceView implements Runnable
 
                     else if (player.ammo >= 1)
                     {
-                        p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, ground.height, metersInScreen,1));
+                        p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, background.groundHeight, metersInScreen,1));
                         // I need to put this ?? because if you spam there's a bug caused by the delay in ACTION_DOWN and ACTION_UP
 
 
@@ -739,8 +761,7 @@ public class GameView extends SurfaceView implements Runnable
 
         // for each skull -> create skeleton
         for (int i = 0; i < game.deadX.size(); i++)
-            game.skeletons.add(new Enemy(getResources(), screenX, screenY, ground.height,
-                    (byte) 25, 1, "skeleton", game.deadX.get(i), player.x));
+            game.skeletons.add(new Enemy(getResources(), screenX, screenY, background.groundHeight, 1, "skeleton", game.deadX.get(i), player.x));
 
         // no longer needed
         game.deadX.clear();
