@@ -37,8 +37,12 @@ public class Player
 
 
     int xp;
+
     boolean hasMagnet;
     Bitmap magnetBitmap;
+
+    boolean hasBleed;
+    Bitmap bloodBitmap;
 
 
 
@@ -48,7 +52,10 @@ public class Player
     {
         xp = 0;
         damage = 1;
-        hasMagnet = false;
+
+        hasMagnet = true;
+        hasBleed = true;
+
 
         meter = (float) screenX / metersInTheScreen;
 
@@ -83,6 +90,8 @@ public class Player
         magnetBitmap = BitmapFactory.decodeResource(res, R.drawable.magnet);
         magnetBitmap = Bitmap.createScaledBitmap(magnetBitmap, crosshairSize, crosshairSize, false);
 
+        bloodBitmap = BitmapFactory.decodeResource(res, R.drawable.blood_drop);
+        bloodBitmap = Bitmap.createScaledBitmap(bloodBitmap, crosshairSize, crosshairSize, false);
 
         maxHearts = 3;
         hearts = 3;

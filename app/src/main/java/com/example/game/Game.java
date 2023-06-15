@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Paint;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Game
@@ -93,9 +94,12 @@ public class Game
 
 
 
+
+
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 1, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 2, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 3, "regular",0, bobX));
+        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 4, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 15, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 16, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, metersInTheScreen, 17, "regular",0, bobX));
@@ -142,22 +146,22 @@ public class Game
 
 
 
-        for (int i = 1; i <= 10; i++)
+        for (int i = 1; i <= 9; i++)
             upgrades.add(new ArrayList<>());
 
-        for (int i = 1; i <= 10; i++)
+        for (int i = 1; i <= 9; i++)
             upgrades_costs.add(new ArrayList<>());
 
 
 
-        upgrades.get(0).add("Magnet");
         upgrades.get(0).add("Health");
         upgrades.get(0).add("Recharge");
         upgrades.get(0).add("Heal");
-        upgrades_costs.get(0).add(25);
+        upgrades.get(0).add("Freeze");
+        upgrades_costs.get(0).add(40);
+        upgrades_costs.get(0).add(45);
+        upgrades_costs.get(0).add(30);
         upgrades_costs.get(0).add(50);
-        upgrades_costs.get(0).add(25);
-        upgrades_costs.get(0).add(25);
 
 
         upgrades.get(1).add("Damage");
@@ -170,13 +174,10 @@ public class Game
         upgrades_costs.get(1).add(65);
 
 
-        upgrades.get(2).add("Freeze");
         upgrades.get(2).add("Recharge");
         upgrades.get(2).add("Heal");
         upgrades_costs.get(2).add(135);
         upgrades_costs.get(2).add(205);
-        upgrades_costs.get(2).add(120);
-
 
 
         upgrades.get(3).add("Recharge");
@@ -195,19 +196,33 @@ public class Game
         upgrades_costs.get(4).add(215);
 
 
-
-
         upgrades.get(5).add("Recharge");
-        upgrades.get(6).add("Recharge");
-        upgrades.get(7).add("Recharge");
-        upgrades.get(8).add("Recharge");
-        upgrades.get(9).add("Recharge");
+        upgrades.get(5).add("Magnet");
+        upgrades.get(5).add("Heal");
+        upgrades_costs.get(5).add(315);
+        upgrades_costs.get(5).add(315);
+        upgrades_costs.get(5).add(200);
 
-        upgrades_costs.get(5).add(25);
-        upgrades_costs.get(6).add(25);
-        upgrades_costs.get(7).add(25);
-        upgrades_costs.get(8).add(25);
-        upgrades_costs.get(9).add(25);
+
+
+        upgrades.get(6).add("Recharge");
+        upgrades.get(6).add("Heal");
+        upgrades_costs.get(6).add(345);
+        upgrades_costs.get(6).add(225);
+
+
+        upgrades.get(7).add("Recharge");
+        upgrades.get(7).add("Heal");
+        upgrades_costs.get(7).add(422);
+        upgrades_costs.get(7).add(270);
+
+
+        upgrades.get(8).add("Recharge");
+        upgrades.get(8).add("Heal");
+        upgrades_costs.get(8).add(500);
+        upgrades_costs.get(8).add(320);
+
+
 
 
 
@@ -226,7 +241,7 @@ public class Game
 
         String largestWord = "";
 
-        for (int i = 1; i < 10; i++)
+        for (int i = 0; i < 9; i++)
             for (int j = 0; j < upgrades.get(i).size(); j++)
                 if (upgrades.get(i).get(j).length() > largestWord.length())
                     largestWord = upgrades.get(i).get(j);
@@ -281,8 +296,8 @@ public class Game
 
     void guard (Enemy guard, Resources res, int screenX, int screenY, float groundHeight, byte metersInTheScreen, float x, float y)
     {
-
-        double randomAngle = ThreadLocalRandom.current().nextDouble(4, 5) * Math.PI / 4;
+        Random random = new Random();
+        double randomAngle = (4 +random.nextDouble()) * Math.PI / 4;
 
 
         if (guard.shootCounter > 0)

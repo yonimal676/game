@@ -39,6 +39,8 @@ public class Enemy
 
     int shootFrequency;
 
+    boolean hasBleed;
+    int bleed_frequency; // for each enemy who is effected by the blood effect - set a counter
 
 
     public Enemy(Resources res, int screenX, int screenY, int groundHeight, byte metersInTheScreen, float relativeInWave, String type, float deadX, float bobX)
@@ -53,6 +55,7 @@ public class Enemy
         shielded = false;
         toShowShot = false;
         shootFrequency = 150;
+        bleed_frequency = 160;
 
         switch (type)
         {
@@ -64,8 +67,8 @@ public class Enemy
                 x = screenX - width + (relativeInWave * width * 1.5f);
                 y = screenY - groundHeight - height;
 
-//                speed = 400 / meter; // pixels per iteration
-                speed = 0;
+                speed = 400 / meter; // pixels per iteration
+//                speed = 0;
 
 
                 added_damage = 0;
@@ -121,7 +124,7 @@ public class Enemy
                 y = screenY - groundHeight - height;
 
 
-                speed = 400 / meter; // pixels per iteration
+                speed = 100 / meter; // pixels per iteration
 
 
                 enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.giant);

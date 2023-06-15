@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
 public class Projectile
 {
@@ -13,9 +14,9 @@ public class Projectile
     float initialX, initialY;  // acts as the (0,0) point relative to the ball.
     float x, y;
     short width, height;
-    Bitmap projectileBitmap;
-    Bitmap projectile1Bitmap;
-    Bitmap projectile2Bitmap;
+    Bitmap projectileBitmap, projectile1Bitmap, projectile2Bitmap;
+    Bitmap pBloodBitmap, p1BloodBitmap, p2BloodBitmap;
+
     Bitmap guardProjectileBitmap;
 
     //physics
@@ -37,7 +38,6 @@ public class Projectile
     float screenX, screenY, groundHeight;
 
     int type; // 1 = normal, 2 = guard
-
 
 
     /* TODO: don't remove the projectile even when needed so you can still see the path, instead make the bitmap null, and damage = 0 */
@@ -66,6 +66,15 @@ public class Projectile
 
         projectile2Bitmap = BitmapFactory.decodeResource(res, R.drawable.projectile3);
         projectile2Bitmap = Bitmap.createScaledBitmap(projectile2Bitmap, width, height, false);
+
+        pBloodBitmap = BitmapFactory.decodeResource(res, R.drawable.p1b);
+        pBloodBitmap = Bitmap.createScaledBitmap(pBloodBitmap, width, height, false);
+
+        p1BloodBitmap = BitmapFactory.decodeResource(res, R.drawable.p2b);
+        p1BloodBitmap = Bitmap.createScaledBitmap(p1BloodBitmap, width, height, false);
+
+        p2BloodBitmap = BitmapFactory.decodeResource(res, R.drawable.p3b);
+        p2BloodBitmap = Bitmap.createScaledBitmap(p2BloodBitmap, width, height, false);
 
 
         guardProjectileBitmap = BitmapFactory.decodeResource(res, R.drawable.guard_projectile);
@@ -121,7 +130,11 @@ public class Projectile
 
         if (type == 1) {
             if (enemy != null)
-                if (x + width >= enemy.x && x <= enemy.x + enemy.width && y + height >= enemy.y && y <= enemy.y + enemy.height) {
+                if (((x + width >= enemy.x && x + width <= enemy.x) || ((x <= enemy.x + enemy.width && x >= enemy.x)) && y + height >= enemy.y))
+                {
+                    if (bob.hasBleed)
+                        enemy.hasBleed = true;
+
                     if (enemy.type.equals("crusader")) {
                         if (!enemy.shielded) {
                             enemy.hearts -= damage;
@@ -132,12 +145,11 @@ public class Projectile
                         enemy.hearts -= damage;
 
                     toRemove = true;
-                    return;
                 }
         }
 
         else if (type == 2)
-            if (x + width >= bob.x && x <= bob.x + bob.width && y + height >= bob.y && y <= bob.y + bob.height) {
+            if (x <= bob.x + bob.width && x >= bob.x && y + height >= bob.y) {
                 bob.hearts --;
                 toRemove = true;
             }
@@ -147,14 +159,57 @@ public class Projectile
             toRemove = true;
     }
 
-    public void physics ()
+
+
+    public void physics(boolean magnetToEnemy, float enemyX, float enemyY)
     {
         vy = v0y + GRAVITY * time;
 
-        x = initialX + vx * time; // x0 + Vx * t
+        if (magnetToEnemy && distance(x, y, enemyX, enemyY) < screenX / 4) {
+            float directionX = enemyX - x;
+            float directionY = enemyY - y;
+            float distanceSquared = distance(x, y, enemyX, enemyY) * distance(x, y, enemyX, enemyY);
 
-        y = initialY + vy * time - GRAVITY * time * time / 2; // y0 + Vy * t - g * t² / 2
+            float forceMagnitude = GRAVITY * 1000 / distanceSquared;
+
+            float ax = forceMagnitude * directionX / distance(x, y, enemyX, enemyY);
+            float ay = forceMagnitude * directionY / distance(x, y, enemyX, enemyY);
+
+            // Apply maximum speed limit
+            float maxSpeed = v;
+            float currentSpeed = (float) Math.sqrt(vx * vx + vy * vy);
+
+            if (currentSpeed > maxSpeed) {
+                float scale = maxSpeed / currentSpeed;
+                vx *= scale;
+                vy *= scale;
+            }
+
+            // Apply dampening effect when close
+            if (distance(x, y, enemyX, enemyY) < screenX/4) {
+                float dampeningFactor = 0.7f;
+                ax *= dampeningFactor;
+                ay *= dampeningFactor;
+
+                // Update the velocity components instead of teleporting the projectile
+                vx += ax * time;
+                vy += ay * time;
+            } else {
+                // If not close, update the velocity components as usual
+                vx += ax * time;
+                vy += ay * time;
+            }
+        }
+
+        x = initialX + vx * time; // x0 + Vx * t
+        y = initialY + vy * time - GRAVITY * time * time / 2; // y0 + Vy * t - g * t² /
     }
+
+
+
+    float distance (float x1, float y1, float x2, float y2)
+    { return (float) Math.sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));}
+
 
 
 }
