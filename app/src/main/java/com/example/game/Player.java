@@ -55,7 +55,7 @@ public class Player
     public Player (Resources res, int screenX, int screenY, int groundHeight, byte metersInTheScreen)
     {
         xp = 0;
-        damage = 49;
+        damage = 1;
 
         hasMagnet = false;
         hasBleed = false;
@@ -114,7 +114,7 @@ public class Player
 
         maxAmmo = 4;
         ammo = 4;
-        AmmoRegenerationPace = 40; // 40
+        AmmoRegenerationPace = 40;
         iterationForAmmoRegeneration = AmmoRegenerationPace;
 
         ammoBitmap = BitmapFactory.decodeResource(res, R.drawable.projectile);
