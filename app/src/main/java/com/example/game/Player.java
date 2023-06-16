@@ -44,6 +44,10 @@ public class Player
     boolean hasBleed;
     Bitmap bloodBitmap;
 
+    boolean hasFreeze;
+    Bitmap snowflakeBitmap;
+
+    boolean hasImpatience;
 
 
 
@@ -51,11 +55,12 @@ public class Player
     public Player (Resources res, int screenX, int screenY, int groundHeight, byte metersInTheScreen)
     {
         xp = 0;
-        damage = 3;
+        damage = 49;
 
-        hasMagnet = true;
-        hasBleed = true;
-
+        hasMagnet = false;
+        hasBleed = false;
+        hasFreeze = false;
+        hasImpatience = false;
 
         meter = (float) screenX / metersInTheScreen;
 
@@ -93,8 +98,12 @@ public class Player
         bloodBitmap = BitmapFactory.decodeResource(res, R.drawable.blood_drop);
         bloodBitmap = Bitmap.createScaledBitmap(bloodBitmap, crosshairSize, crosshairSize, false);
 
-        maxHearts = 3;
-        hearts = 3;
+        snowflakeBitmap = BitmapFactory.decodeResource(res, R.drawable.snowflake);
+        snowflakeBitmap = Bitmap.createScaledBitmap(snowflakeBitmap, crosshairSize, crosshairSize, false);
+
+
+        maxHearts = 4;
+        hearts = 4;
 
         heartBitmap = BitmapFactory.decodeResource(res, R.drawable.heart);
         heartBitmap = Bitmap.createScaledBitmap(heartBitmap, crosshairSize, crosshairSize,false);
@@ -103,9 +112,9 @@ public class Player
         emptyHeartBitmap = Bitmap.createScaledBitmap(emptyHeartBitmap, crosshairSize, crosshairSize,false);
 
 
-        maxAmmo = 7;
-        ammo = 3;
-        AmmoRegenerationPace = 20;
+        maxAmmo = 4;
+        ammo = 4;
+        AmmoRegenerationPace = 40; // 40
         iterationForAmmoRegeneration = AmmoRegenerationPace;
 
         ammoBitmap = BitmapFactory.decodeResource(res, R.drawable.projectile);

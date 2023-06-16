@@ -53,6 +53,12 @@ public class Enemy
     boolean isBleeding;
     int bleed_frequency; // for each enemy who is effected by the blood effect - set a counter
 
+    boolean isFreezing;
+    int freezeCounter;
+
+    boolean summonGuards;
+    boolean kingSeatBroke;
+
 
     public Enemy(Resources res, int screenX, int screenY, int groundHeight, float relativeInWave, String type, float deadX, float bobX)
     {
@@ -65,11 +71,15 @@ public class Enemy
         shield_counter = 100;
         shielded = false;
         toShowShot = false;
+        summonGuards = false;
+        kingSeatBroke = false;
         shootFrequency = 150;
         bleed_frequency = 160;
         jumpLength = screenX / 100f;
         jumpHeight = jumpLength * 0.4f; // creates an angle of the jump (  tan^-1 (0.4/1) = 21.801°  )
         jumpIterations = 10;
+
+        freezeCounter = 400;
 
         switch (type)
         {
@@ -125,7 +135,7 @@ public class Enemy
             case "giant":
                 width = screenX / 12f;
                 height = width * 1.2f;
-                hearts = 10;
+                hearts = 15;
 
                 added_damage = 0;
 
@@ -148,8 +158,8 @@ public class Enemy
 
             case "skeleton": //not an enemy but could be here
 
-                width = screenX / 30f;
-                height = width * 1.45f;
+                width = screenX / 32f;
+                height = width * 1.55f;
 
                 hearts = 1;
 
@@ -158,6 +168,8 @@ public class Enemy
 
                 jumpCounter = 10;
                 waitForJump = jumpCounter;
+
+                added_damage = 0;
 
 
                 enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.skeleton);
@@ -170,7 +182,7 @@ public class Enemy
             case "crusader":
 
                 width = screenX / 22f;
-                height = width * 1.65f;
+                height = width * 1.6f;
 
                 hearts = 5;
 
@@ -224,12 +236,12 @@ public class Enemy
 
 
             case "seated king":
-                width = screenX / 15f;
+                width = screenX / 10f;
                 height = width;
 
-                hearts = 50;
+                hearts = 100;
 
-                added_damage = 0;
+                added_damage = 100;
 
                 x = screenX - width + (relativeInWave * width * 1.5f);
                 y = screenY - groundHeight - height;
@@ -237,15 +249,11 @@ public class Enemy
                 jumpCounter = 150;
                 waitForJump = jumpCounter;
 
-
-
+                summonGuards = true;
 
                 enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.seated_king);
                 enemyBitmap = Bitmap.createScaledBitmap(enemyBitmap, (int) width, (int) height, false);
 
-
-                xp = 10000000;
-                xpOfEnemy = xp;
                 break;
 
 
@@ -256,24 +264,19 @@ public class Enemy
 
                 hearts = 50;
 
-                added_damage = 0;
+                added_damage = 100;
 
-                x = screenX - width + (relativeInWave * width * 1.5f);
+                x = deadX;
                 y = screenY - groundHeight - height;
 
-                jumpCounter = 150;
+                jumpCounter = 120;
                 waitForJump = jumpCounter;
 
 
 
-                shootCounter = shootFrequency;
 
                 enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.king);
                 enemyBitmap = Bitmap.createScaledBitmap(enemyBitmap, (int) width, (int) height, false);
-
-
-                xp = 10000000;
-                xpOfEnemy = xp;
                 break;
 
 
@@ -303,7 +306,7 @@ public class Enemy
 
         else
         {
-            canvas.drawText(hearts + "", x, screenY - groundHeight, paint);
+            canvas.drawText(hearts + "", x, screenY , paint);
             canvas.drawBitmap(heartBitmap, x + paint.measureText(hearts+""), screenY - groundHeight, paint);
         }
     }

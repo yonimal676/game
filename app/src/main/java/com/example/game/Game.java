@@ -42,6 +42,7 @@ public class Game
     boolean didResurrect;
 
     int canResurrect;
+    int timeOfResurrection;
     float bobX, bobY;
 
 
@@ -57,6 +58,8 @@ public class Game
         didResurrect = false;
         canResurrect = 0; // can resurrect at the beginning
         didContinue = false;
+        timeOfResurrection = 450;
+
 
         circle_paint = new Paint();
         circle_paint.setColor(Color.argb(100, 70, 160, 110)); // upgrades
@@ -98,10 +101,6 @@ public class Game
 
 
 
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 1, "seated_king",0, bobX));
-
-/*
-
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 1, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 2, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 3, "regular",0, bobX));
@@ -112,13 +111,6 @@ public class Game
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 19, "regular",0, bobX));
         waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 20, "regular",0, bobX));
 
-        waves.get(0).add(new Enemy(res, screenX, screenY, groundHeight, 24, "ghost",0, bobX));
-*/
-
-
-
-
-
 
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 1, "regular",0, bobX));
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 2, "regular",0, bobX));
@@ -127,31 +119,73 @@ public class Game
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 5, "ghost",0, bobX));
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 17, "ghost",0, bobX));
         waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 19, "ghost",0, bobX));
+        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 25, "ghost",0, bobX));
+        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 27, "ghost",0, bobX));
+        waves.get(1).add(new Enemy(res, screenX, screenY, groundHeight, 29, "ghost",0, bobX));
 
 
         waves.get(2).add(new Enemy(res, screenX, screenY, groundHeight, 1, "giant",0, bobX));
         waves.get(2).add(new Enemy(res, screenX, screenY, groundHeight, 3, "giant",0, bobX));
+        waves.get(2).add(new Enemy(res, screenX, screenY, groundHeight, 9, "crusader",0, bobX));
 
 
-        for (int i = 0; i < 20; i++)
-            waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, (i * 0.4f), "regular",0, bobX));
+        for (int i = 0; i < 27; i++)
+            waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, (i * 0.25f), "regular",0, bobX));
+        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, 40, "crusader",0, bobX));
+        waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, 47, "crusader",0, bobX));
 
 
         waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, 1, "giant",0, bobX));
         waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, 1.6f, "giant",0, bobX));
         waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, 2.5f, "giant",0, bobX));
         waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, 3, "giant",0, bobX));
+        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, 4, "guard",0, bobX));
+        waves.get(4).add(new Enemy(res, screenX, screenY, groundHeight, 5, "guard",0, bobX));
 
 
-        waves.get(5).add(new Enemy(res, screenX, screenY, groundHeight, 1, "crusader",0, bobX));
+        waves.get(5).add(new Enemy(res, screenX, screenY, groundHeight, 1, "ghost",0, bobX));
+        waves.get(5).add(new Enemy(res, screenX, screenY, groundHeight, 2, "ghost",0, bobX));
+        waves.get(5).add(new Enemy(res, screenX, screenY, groundHeight, 3, "ghost",0, bobX));
+        waves.get(5).add(new Enemy(res, screenX, screenY, groundHeight, 4.5f, "ghost",0, bobX));
+        waves.get(5).add(new Enemy(res, screenX, screenY, groundHeight, 5, "ghost",0, bobX));
+        waves.get(5).add(new Enemy(res, screenX, screenY, groundHeight, 6, "crusader",0, bobX));
+
 
         waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, 1, "giant",0, bobX));
-        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, 3, "crusader",0, bobX));
+        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, 2, "giant",0, bobX));
+        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, 6, "crusader",0, bobX));
+        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, 7, "crusader",0, bobX));
+        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, 2, "guard",0, bobX));
+        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, 2, "guard",0, bobX));
+        waves.get(6).add(new Enemy(res, screenX, screenY, groundHeight, 2, "guard",0, bobX));
 
-        // ive yet to make these waves
-        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, 1, "regular",0, bobX));
-        waves.get(8).add(new Enemy(res, screenX, screenY, groundHeight, 1, "regular",0, bobX));
-        waves.get(9).add(new Enemy(res, screenX, screenY, groundHeight, 1, "regular",0, bobX));
+
+
+        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, 1, "crusader",0, bobX));
+        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, 2, "guard",0, bobX));
+        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, 3, "crusader",0, bobX));
+        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, 4, "guard",0, bobX));
+        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, 5, "crusader",0, bobX));
+        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, 6, "guard",0, bobX));
+        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, 7, "crusader",0, bobX));
+        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, 8, "guard",0, bobX));
+        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, 9, "crusader",0, bobX));
+        waves.get(7).add(new Enemy(res, screenX, screenY, groundHeight, 10,"guard",0, bobX));
+
+
+
+
+
+        for (int i = 0; i < 50; i++)
+            waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, (i * 0.2f), "regular",0, bobX));
+        for (int i = 0; i < 8; i++)
+            waves.get(3).add(new Enemy(res, screenX, screenY, groundHeight, (i * 1.5f), "crusader",0, bobX));
+
+
+
+
+
+        waves.get(9).add(new Enemy(res, screenX, screenY, groundHeight, 1, "seated king",0, bobX));
 
 
 
@@ -174,66 +208,97 @@ public class Game
         upgrades_costs.get(0).add(40);
         upgrades_costs.get(0).add(45);
         upgrades_costs.get(0).add(30);
-        upgrades_costs.get(0).add(50);
+        upgrades_costs.get(0).add(135);
 
 
         upgrades.get(1).add("Damage");
         upgrades.get(1).add("Health");
         upgrades.get(1).add("Recharge");
         upgrades.get(1).add("Heal");
-        upgrades_costs.get(1).add(125);
-        upgrades_costs.get(1).add(55);
-        upgrades_costs.get(1).add(133);
+        upgrades_costs.get(1).add(500);
+        upgrades_costs.get(1).add(100);
+        upgrades_costs.get(1).add(150);
         upgrades_costs.get(1).add(65);
 
 
         upgrades.get(2).add("Recharge");
+        upgrades.get(2).add("Freeze");
         upgrades.get(2).add("Heal");
-        upgrades_costs.get(2).add(135);
+        upgrades_costs.get(2).add(250);
+        upgrades_costs.get(2).add(550);
         upgrades_costs.get(2).add(205);
 
 
+        upgrades.get(3).add("Health");
         upgrades.get(3).add("Recharge");
         upgrades.get(3).add("Bleed");
         upgrades.get(3).add("Heal");
-        upgrades_costs.get(3).add(245);
-        upgrades_costs.get(3).add(165);
+        upgrades.get(3).add("Impatience");
+        upgrades_costs.get(3).add(311);
+        upgrades_costs.get(3).add(502);
+        upgrades_costs.get(3).add(650);
         upgrades_costs.get(3).add(145);
+        upgrades_costs.get(3).add(1001);
 
 
+        upgrades.get(4).add("Health");
         upgrades.get(4).add("Damage");
         upgrades.get(4).add("Recharge");
         upgrades.get(4).add("Heal");
-        upgrades_costs.get(4).add(315);
-        upgrades_costs.get(4).add(315);
+        upgrades.get(4).add("Bleed");
+        upgrades_costs.get(4).add(350);
+        upgrades_costs.get(4).add(722);
+        upgrades_costs.get(4).add(350);
         upgrades_costs.get(4).add(215);
+        upgrades_costs.get(4).add(1000);
+
 
 
         upgrades.get(5).add("Recharge");
         upgrades.get(5).add("Magnet");
+        upgrades.get(5).add("Bleed");
         upgrades.get(5).add("Heal");
-        upgrades_costs.get(5).add(315);
-        upgrades_costs.get(5).add(315);
-        upgrades_costs.get(5).add(200);
-
+        upgrades.get(5).add("Freeze");
+        upgrades_costs.get(5).add(478);
+        upgrades_costs.get(5).add(1243);
+        upgrades_costs.get(5).add(1211);
+        upgrades_costs.get(5).add(129);
+        upgrades_costs.get(5).add(1112);
 
 
         upgrades.get(6).add("Recharge");
+        upgrades.get(6).add("Magnet");
+        upgrades.get(6).add("Bleed");
         upgrades.get(6).add("Heal");
-        upgrades_costs.get(6).add(345);
-        upgrades_costs.get(6).add(225);
+        upgrades.get(6).add("Freeze");
+        upgrades.get(6).add("Impatience");
+        upgrades_costs.get(6).add(512);
+        upgrades_costs.get(6).add(1322);
+        upgrades_costs.get(6).add(1321);
+        upgrades_costs.get(6).add(245);
+        upgrades_costs.get(6).add(2000);
+        upgrades_costs.get(6).add(1892);
 
 
+
+        upgrades.get(7).add("Health");
         upgrades.get(7).add("Recharge");
         upgrades.get(7).add("Heal");
+        upgrades.get(7).add("Damage");
+        upgrades.get(7).add("Freeze");
+        upgrades_costs.get(7).add(411);
         upgrades_costs.get(7).add(422);
         upgrades_costs.get(7).add(270);
+        upgrades_costs.get(7).add(2174);
+        upgrades_costs.get(7).add(2255);
 
 
         upgrades.get(8).add("Recharge");
         upgrades.get(8).add("Heal");
-        upgrades_costs.get(8).add(500);
-        upgrades_costs.get(8).add(320);
+        upgrades.get(8).add("Impatience");
+        upgrades_costs.get(8).add(1643);
+        upgrades_costs.get(8).add(1402);
+        upgrades_costs.get(8).add(2738);
 
 
 
@@ -260,7 +325,7 @@ public class Game
                     largestWord = upgrades.get(i).get(j);
 
 
-        textSize = (int) (res.getDisplayMetrics().scaledDensity * (circleRadius / largestWord.length() - 2)); // -2 so there will be some padding
+        textSize = (int) (res.getDisplayMetrics().scaledDensity * (circleRadius / largestWord.length() - 1)); // -2 so there will be some padding
 
         scaledSizeInPixels = textSize * res.getDisplayMetrics().scaledDensity;
         text_paint.setTextSize(scaledSizeInPixels);
@@ -278,16 +343,16 @@ public class Game
     void crusader(Enemy crusader , Resources res)
     {
 
+        if ( ! crusader.isFreezing ) {
+            if (crusader.shield_counter > 0)
+                crusader.shield_counter--;
+            else
+                crusader.shield_counter = 100;
 
-        if (crusader.shield_counter > 0)
-            crusader.shield_counter--;
-        else
-            crusader.shield_counter = 100;
+            if (crusader.shield_counter == 0)
+                crusader.shielded = false;
 
-        if (crusader.shield_counter == 0)
-            crusader.shielded = false;
-
-
+        }
         if (!crusader.shielded)
         {
             crusader.waitForJump = 20;
@@ -312,53 +377,52 @@ public class Game
         Random random = new Random();
         double randomAngle = (4 +random.nextDouble()) * Math.PI / 4;
 
+        if ( ! guard.isFreezing ) {
+            if (guard.shootCounter > 0) {
+                guard.shootCounter--;
 
-        if (guard.shootCounter > 0)
-        {
-            guard.shootCounter--;
+                if (guard.shootCounter > 95)
+                    guard.toShowShot = true;
+                else
+                    guard.toShowShot = false;
+            }
 
-            if (guard.shootCounter > 95)
+            else if (guard.shootCounter == 0) // shoot
+            {
                 guard.toShowShot = true;
-            else
-                guard.toShowShot = false;
+
+                guard.guard_projectiles.add(new Projectile(res, screenX, screenY, guard.x, guard.y, groundHeight, metersInTheScreen, 2));
+
+
+                guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).isThrown = true;
+
+                guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).initialX = x;
+                guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).initialY = y;
+
+
+                guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).vx
+                        = (float) (Math.cos(randomAngle) * guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).v);
+
+
+                guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).v0y
+                        = (float) (Math.sin(randomAngle) * guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).v);
+
+
+                guard.shootCounter = guard.shootFrequency;
+
+            }
+
+            if (guard.toShowShot) {
+                guard.enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.guard_throwing);
+                guard.enemyBitmap = Bitmap.createScaledBitmap(guard.enemyBitmap, (int) (guard.width * 1.5f), (int) (guard.height), false);
+            }
+            else {
+                guard.enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.guard);
+                guard.enemyBitmap = Bitmap.createScaledBitmap(guard.enemyBitmap, (int) (guard.width * 1.3f), (int) (guard.height), false);
+            }
+
+
         }
-
-        else if (guard.shootCounter == 0) // shoot
-        {
-            guard.toShowShot = true;
-
-            guard.guard_projectiles.add(new Projectile(res, screenX, screenY, guard.x, guard.y, groundHeight, metersInTheScreen, 2));
-
-
-            guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).isThrown = true;
-
-            guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).initialX = x;
-            guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).initialY = y;
-
-
-
-            guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).vx
-                    = (float) (Math.cos(randomAngle) * guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).v);
-
-
-            guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).v0y
-                    = (float) (Math.sin(randomAngle) * guard.guard_projectiles.get(guard.guard_projectiles.size() - 1).v);
-
-
-            guard.shootCounter = guard.shootFrequency;
-
-        }
-
-        if (guard.toShowShot) {
-            guard.enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.guard_throwing);
-            guard.enemyBitmap = Bitmap.createScaledBitmap(guard.enemyBitmap, (int) (guard.width * 1.5f), (int) (guard.height), false);
-        } else {
-            guard.enemyBitmap = BitmapFactory.decodeResource(res, R.drawable.guard);
-            guard.enemyBitmap = Bitmap.createScaledBitmap(guard.enemyBitmap, (int) (guard.width * 1.3f), (int) (guard.height), false);
-        }
-
-
-
 
         // guard shooting
         for (int i = 0; i < guard.guard_projectiles.size(); i++) // updating the already-shot projectiles ( and their dots )

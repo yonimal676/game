@@ -15,6 +15,7 @@ public class Projectile
     short width, height;
     Bitmap projectileBitmap, projectile1Bitmap, projectile2Bitmap;
     Bitmap pBloodBitmap, p1BloodBitmap, p2BloodBitmap;
+    Bitmap frozenProjectile;
 
     Bitmap guardProjectileBitmap;
 
@@ -38,6 +39,8 @@ public class Projectile
 
     int type; // 1 = normal, 2 = guard
 
+    boolean isFreeze;
+
 
     /* TODO: don't remove the projectile even when needed so you can still see the path, instead make the bitmap null, and damage = 0 */
 
@@ -50,6 +53,7 @@ public class Projectile
         this.type = type;
         toRemove = false;
 
+        isFreeze = false;
 
         meter = (float) screenX / metersInTheScreen; // TODO: remember that if you scale this up, the ball will NOT move in the same ratio!!
 
@@ -74,6 +78,9 @@ public class Projectile
 
         p2BloodBitmap = BitmapFactory.decodeResource(res, R.drawable.p3b);
         p2BloodBitmap = Bitmap.createScaledBitmap(p2BloodBitmap, width, height, false);
+
+        frozenProjectile = BitmapFactory.decodeResource(res, R.drawable.frozen_projectile);
+        frozenProjectile = Bitmap.createScaledBitmap(frozenProjectile, width, height, false);
 
 
         guardProjectileBitmap = BitmapFactory.decodeResource(res, R.drawable.guard_projectile);
@@ -133,6 +140,10 @@ public class Projectile
                 {
                     if (bob.hasBleed)
                         enemy.isBleeding = true;
+
+                    if (bob.hasFreeze)
+                        enemy.isFreezing = true;
+
 
                     if (enemy.type.equals("crusader")) {
                         if (!enemy.shielded) {

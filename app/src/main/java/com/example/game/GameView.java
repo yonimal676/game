@@ -16,6 +16,7 @@ import android.graphics.Paint;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 
@@ -134,41 +135,66 @@ public class GameView extends SurfaceView implements Runnable
                 Enemy enemy = game.waves.get(game.currentWave).get(enemy_index);
 
 
+                if (player.hasBleed && enemy.isBleeding) {
+                    if (enemy.bleed_frequency > 0)
+                        enemy.bleed_frequency--;
+                    else
+                    {
+                        enemy.hearts--;
+                        enemy.bleed_frequency = 160;
+                    }
+                }
+
+                if (player.hasFreeze && enemy.isFreezing) {
+                    if (enemy.freezeCounter > 0)
+                        enemy.freezeCounter--;
+                    else {
+                        enemy.freezeCounter = 400;
+                        enemy.isFreezing = false;
+                    }
+                }
+
+
+
+
                 if (enemy.type.equals("crusader"))
                     game.crusader(enemy, getResources());
 
                 else if (enemy.type.equals("guard"))
                     game.guard(player, enemy, getResources(), screenX, screenY, background.groundHeight, metersInScreen, enemy.x, enemy.y);
 
-                // king fits here
 
 
-                // ghosts don't jump, the hover.
-                if (enemy.type.equals("ghost"))
-                    enemy.x -= enemy.jumpLength / 1.2f;
-
-                else if (enemy.type.equals("crusader") && ! enemy.shielded)
-                    enemy.x -= enemy.jumpLength * 1.2f;
-
-                else if (enemy.jumpCounter == 0) // jump
+                if (! enemy.isFreezing)
                 {
-                    if (enemy.jumpIterations > 5)
+                    // ghosts don't jump, the hover.
+                    if (enemy.type.equals("ghost"))
+                        enemy.x -= enemy.jumpLength;
+
+
+                    else if (enemy.type.equals("crusader") && !enemy.shielded)
+                        enemy.x -= enemy.jumpLength * 1.2f;
+
+                    else if (enemy.jumpCounter == 0) // jump
                     {
-                        enemy.x -= enemy.jumpLength;
-                        enemy.y -= enemy.jumpHeight;
-                    } else {
-                        enemy.x -= enemy.jumpLength;
-                        enemy.y += enemy.jumpHeight;
+                        if (enemy.jumpIterations > 5) {
+                            enemy.x -= enemy.jumpLength;
+                            enemy.y -= enemy.jumpHeight;
+                        }
+                        else {
+                            enemy.x -= enemy.jumpLength;
+                            enemy.y += enemy.jumpHeight;
+                        }
+
+                        enemy.jumpIterations--;
+
+                        if (enemy.jumpIterations == 0)
+                            enemy.jumpCounter = enemy.waitForJump;
                     }
-
-                    enemy.jumpIterations --;
-
-                    if (enemy.jumpIterations == 0)
-                        enemy.jumpCounter = enemy.waitForJump;
-                }
-                else {
-                    enemy.jumpCounter--;
-                    enemy.jumpIterations = 10;
+                    else {
+                        enemy.jumpCounter--;
+                        enemy.jumpIterations = 10;
+                    }
                 }
 
 
@@ -227,27 +253,33 @@ public class GameView extends SurfaceView implements Runnable
 
                 }
 
-                if (player.hasBleed && enemy.isBleeding) {
-                    if (enemy.bleed_frequency > 0)
-                        enemy.bleed_frequency--;
-                    else
-                    {
-                        enemy.hearts--;
-                        enemy.bleed_frequency = 160;
-                    }
-                }
-
                 //check life for removal
                 if (enemy.hearts <= 0)
                 {
-                    game.deadX.add(enemy.x);
-                    game.waves.get(game.currentWave).remove(enemy);
+                    if (game.currentWave < 9) {
+                        game.deadX.add(enemy.x);
+                        game.waves.get(game.currentWave).remove(enemy);
 
-                    Random random = new Random();
-                    player.xp += Math.round(enemy.xp * (0.5 + random.nextDouble()));
+                        Random random = new Random();
+                        player.xp += Math.round(enemy.xp * (0.5 + random.nextDouble()));
+                    }
+                    else
+                        if ( ! enemy.kingSeatBroke)
+                        {
+                            enemy.kingSeatBroke = true;
+
+                            float kingSpawnX = enemy.x;
+                            game.waves.get(game.currentWave).remove(enemy);
+
+                            game.waves.get(game.currentWave).add(new Enemy(getResources(), screenX, screenY, background.groundHeight, 1, "king",kingSpawnX, player.x));
+                        }
+
+
+
                 }
 
             } // enemies
+
 
         }// isInWave
 
@@ -375,18 +407,23 @@ public class GameView extends SurfaceView implements Runnable
             for (int i = 0; i < p_arr.size(); i++)
             {
                 if (p_arr.get(i).isThrown) {
+
                     if (!player.hasBleed) {
                         for (int j = 0; j < p_arr.get(i).dotArrayListX.size() - 2; j++) // draw *all* the dots of *all* projectiles | -2 for delay
                             screenCanvas.drawCircle(p_arr.get(i).dotArrayListX.get(j), p_arr.get(i).dotArrayListY.get(j),
                                     p_arr.get(i).width / 40f * (float) Math.pow(j, 0.75) + 1, paint1);
 
 
-                        if (player.damage == 1)
-                            screenCanvas.drawBitmap(p_arr.get(i).projectileBitmap, p_arr.get(i).x, p_arr.get(i).y, paint1);
-                        else if (player.damage == 2)
-                            screenCanvas.drawBitmap(p_arr.get(i).projectile1Bitmap, p_arr.get(i).x, p_arr.get(i).y, paint1);
+                        if (! p_arr.get(i).isFreeze ) {
+                            if (player.damage == 1)
+                                screenCanvas.drawBitmap(p_arr.get(i).projectileBitmap, p_arr.get(i).x, p_arr.get(i).y, paint1);
+                            else if (player.damage == 2)
+                                screenCanvas.drawBitmap(p_arr.get(i).projectile1Bitmap, p_arr.get(i).x, p_arr.get(i).y, paint1);
+                            else if (player.damage == 3)
+                                screenCanvas.drawBitmap(p_arr.get(i).projectile2Bitmap, p_arr.get(i).x, p_arr.get(i).y, paint1);
+                        }
                         else
-                            screenCanvas.drawBitmap(p_arr.get(i).projectile2Bitmap, p_arr.get(i).x, p_arr.get(i).y, paint1);
+                            screenCanvas.drawBitmap(p_arr.get(i).frozenProjectile, p_arr.get(i).x, p_arr.get(i).y, paint1);
                     }
 
                     else // has bleed effect
@@ -410,12 +447,20 @@ public class GameView extends SurfaceView implements Runnable
 
                         }
 
-                        if (player.damage == 1)
-                            screenCanvas.drawBitmap(p_arr.get(i).pBloodBitmap, p_arr.get(i).x, p_arr.get(i).y, paint1);
-                        else if (player.damage == 2)
-                            screenCanvas.drawBitmap(p_arr.get(i).p1BloodBitmap, p_arr.get(i).x, p_arr.get(i).y, paint1);
+                        if (! p_arr.get(i).isFreeze )
+                        {
+                            if (player.damage == 1)
+                                screenCanvas.drawBitmap(p_arr.get(i).pBloodBitmap, p_arr.get(i).x, p_arr.get(i).y, paint1);
+                            else if (player.damage == 2)
+                                screenCanvas.drawBitmap(p_arr.get(i).p1BloodBitmap, p_arr.get(i).x, p_arr.get(i).y, paint1);
+                            else if (player.damage == 3)
+                                screenCanvas.drawBitmap(p_arr.get(i).p2BloodBitmap, p_arr.get(i).x, p_arr.get(i).y, paint1);
+                        }
                         else
-                            screenCanvas.drawBitmap(p_arr.get(i).p2BloodBitmap, p_arr.get(i).x, p_arr.get(i).y, paint1);
+                            screenCanvas.drawBitmap(p_arr.get(i).frozenProjectile, p_arr.get(i).x, p_arr.get(i).y, paint1);
+
+
+
                     }
 
 
@@ -476,9 +521,22 @@ public class GameView extends SurfaceView implements Runnable
 
                     screenCanvas.drawBitmap(enemy.enemyBitmap, enemy.x, enemy.y, paint1);
 
-                    if (player.hasBleed && enemy.isBleeding)
+
+
+                    if (player.hasBleed && enemy.isBleeding) {
                         screenCanvas.drawBitmap(player.bloodBitmap, enemy.x + (enemy.width - player.bloodBitmap.getWidth()),
                                 enemy.y - player.bloodBitmap.getHeight(), paint1);
+
+                        if (player.hasFreeze && enemy.isFreezing)
+                            screenCanvas.drawBitmap(player.snowflakeBitmap, enemy.x + (enemy.width - player.snowflakeBitmap.getWidth()),
+                                    enemy.y - 1.5f * player.snowflakeBitmap.getHeight(), paint1);
+                    }
+
+                    else if (player.hasFreeze && enemy.isFreezing)
+                        screenCanvas.drawBitmap(player.snowflakeBitmap, enemy.x + (enemy.width - player.snowflakeBitmap.getWidth()),
+                                enemy.y - player.snowflakeBitmap.getHeight(), paint1);
+
+
 
                     enemy.displayHearts(screenCanvas, game.text_paint);
                 }
@@ -501,19 +559,6 @@ public class GameView extends SurfaceView implements Runnable
                     screenCanvas.drawText("(i)  " + game.explainUpgrade, screenX / 2f, player.y, game.text_paint); // explain upgrades
             }
 
-            if (player.hasMagnet)
-                screenCanvas.drawBitmap(player.magnetBitmap, (player.x - player.crosshairSize)/2 ,
-                        screenY - background.groundHeight - 1.5f * player.crosshairSize, paint1);
-
-            if (player.hasBleed)
-            {
-                if (player.hasMagnet)
-                    screenCanvas.drawBitmap(player.bloodBitmap, (player.x - player.crosshairSize)/2,
-                            screenY - background.groundHeight - 3 * player.crosshairSize, paint1);
-                else
-                    screenCanvas.drawBitmap(player.bloodBitmap, (player.x - player.crosshairSize)/2,
-                            screenY - background.groundHeight - player.crosshairSize, paint1);
-            }
 
             getHolder().unlockCanvasAndPost(screenCanvas);
         }
@@ -557,7 +602,23 @@ public class GameView extends SurfaceView implements Runnable
 
 
 
+    public void resurrect ()
+    {
 
+        // for each skull -> create skeleton
+        for (int i = 0; i < game.deadX.size(); i++)
+            game.skeletons.add(new Enemy(getResources(), screenX, screenY, background.groundHeight, 1, "skeleton", game.deadX.get(i), player.x));
+
+        // no longer needed
+        game.deadX.clear();
+
+        // to remove skulls
+        game.didResurrect = true;
+
+        game.res_paint.setColor(Color.argb(200, 180, 100, 100));
+
+
+    }
 
 
 
@@ -573,9 +634,6 @@ public class GameView extends SurfaceView implements Runnable
 
                 if ( game.isInWave )
                 {
-                    if (player.ammo >= 1)
-                        p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, background.groundHeight, metersInScreen,1));
-                    // I need to put this ?? because if you spam there's a bug caused by the delay in ACTION_DOWN and ACTION_UP
 
                     if (!p_arr.isEmpty())
                     {
@@ -604,6 +662,7 @@ public class GameView extends SurfaceView implements Runnable
                                 break;
                         }
                     }
+
                 }
 
 
@@ -676,7 +735,7 @@ public class GameView extends SurfaceView implements Runnable
                             if ( ! game.deadX.isEmpty()) {
                                 resurrect();
 
-                                game.canResurrect = 200; // restart counter
+                                game.canResurrect = game.timeOfResurrection; // restart counter
                             }
                         }
                     }
@@ -686,8 +745,18 @@ public class GameView extends SurfaceView implements Runnable
 
                     else if (player.ammo >= 1)
                     {
+
                         p_arr.add(new Projectile(getResources(), screenX, screenY, player.aimX, player.aimY, background.groundHeight, metersInScreen,1));
-                        // I need to put this ?? because if you spam there's a bug caused by the delay in ACTION_DOWN and ACTION_UP
+
+
+                        if (player.hasFreeze)
+                        {
+                            Random random = new Random();
+
+                            if ( random.nextInt(10) < 1 ) // 10% chance
+                                p_arr.get(p_arr.size() - 1).isFreeze = true;
+                        }
+
 
 
 
@@ -743,11 +812,15 @@ public class GameView extends SurfaceView implements Runnable
                         game.didContinue = true;
 
 
-                    else  // check if pressed any upgrade
+                    else // check if pressed any upgrade
                         for (int i = 0; i < game.upgrades.get(game.currentWave).size(); i++)
-                            if (event.getX() >= game.cx_arr.get(i) - game.circleRadius && event.getX() <= game.cx_arr.get(i) + game.circleRadius
-                                    && event.getY() >= game.cy_arr.get(i) - game.circleRadius && event.getY() <= game.cy_arr.get(i) + game.circleRadius)
-                                upgrade(game.upgrades.get(game.currentWave).get(i));
+                            try {
+                                if (event.getX() >= game.cx_arr.get(i) - game.circleRadius && event.getX() <= game.cx_arr.get(i) + game.circleRadius
+                                        && event.getY() >= game.cy_arr.get(i) - game.circleRadius && event.getY() <= game.cy_arr.get(i) + game.circleRadius)
+                                    upgrade(game.upgrades.get(game.currentWave).get(i));
+                            } catch (Exception e) { e.printStackTrace();}
+
+
                 }
 
                 break;
@@ -756,58 +829,53 @@ public class GameView extends SurfaceView implements Runnable
     }
 
 
-    public void resurrect ()
-    {
 
-        // for each skull -> create skeleton
-        for (int i = 0; i < game.deadX.size(); i++)
-            game.skeletons.add(new Enemy(getResources(), screenX, screenY, background.groundHeight, 1, "skeleton", game.deadX.get(i), player.x));
-
-        // no longer needed
-        game.deadX.clear();
-
-        // to remove skulls
-        game.didResurrect = true;
-
-        game.res_paint.setColor(Color.argb(200, 180, 100, 100));
-
-
-    }
 
 
 
     int checkUpgrades()
     {
-        int size = game.upgrades.get(game.currentWave).size();
 
-        for (int upgrade_index = 0; upgrade_index < size; upgrade_index++)
+        ArrayList <Integer> indicesToRemove = new ArrayList<>();
+
+
+        for (int upgrade_index = 0; upgrade_index < game.upgrades.get(game.currentWave).size(); upgrade_index++)
         {
-            if (player.hearts == player.maxHearts) {
-                if (game.upgrades.get(game.currentWave).contains("Heal")) {
+            String upgrade = game.upgrades.get(game.currentWave).get(upgrade_index);
 
-                    game.upgrades.get(game.currentWave).remove("Heal");
-                    game.upgrades_costs.get(game.currentWave).remove(upgrade_index);
+            if (player.hearts == player.maxHearts && upgrade.equals("Heal"))
+                indicesToRemove.add(upgrade_index);
 
-                    size--;
-                }
-            }
+            else if (player.damage == 3 && upgrade.equals("Damage"))
+                indicesToRemove.add(upgrade_index);
 
-            else if (player.hasMagnet) {
-                if (game.upgrades.get(game.currentWave).contains("Magnet")) {
+             else if (player.hasMagnet && upgrade.equals("Magnet"))
+                indicesToRemove.add(upgrade_index);
 
-                    game.upgrades.get(game.currentWave).remove("Magnet");
-                    game.upgrades_costs.get(game.currentWave).remove(upgrade_index);
+             else if (player.hasFreeze && upgrade.equals("Freeze"))
+                indicesToRemove.add(upgrade_index);
 
-                    size--;
-                }
-            }
+             else if (player.hasBleed && upgrade.equals("Bleed"))
+                indicesToRemove.add(upgrade_index);
 
-            //bleed as well
+            else if (player.hasImpatience && upgrade.equals("hasImpatience"))
+                indicesToRemove.add(upgrade_index);
+
 
         }
 
-        return size;
-    }
+        for (int i = indicesToRemove.size() - 1; i >= 0; i--) {
+            int indexToRemove = indicesToRemove.get(i);
+            game.upgrades.get(game.currentWave).remove(indexToRemove);
+            game.upgrades_costs.get(game.currentWave).remove(indexToRemove);
+        }
+
+        return game.upgrades.get(game.currentWave).size();
+
+ }
+
+
+
 
     public void afterWaveScreen (Canvas canvas, int playerXP)
     {
@@ -955,6 +1023,29 @@ public class GameView extends SurfaceView implements Runnable
 
                         break;
 
+
+                    case "Freeze":
+                        player.hasFreeze = true;
+
+                        player.xp -= game.upgrades_costs.get(game.currentWave).get((indexOfUpgrade));
+
+                        game.upgrades.get(game.currentWave).remove("Freeze");
+                        game.upgrades_costs.get(game.currentWave).remove(game.upgrades_costs.get(game.currentWave).get(indexOfUpgrade));
+
+                        break;
+
+
+                    case "Impatience":
+                        game.timeOfResurrection *= 0.5;
+                        player.hasImpatience = true;
+
+                        player.xp -= game.upgrades_costs.get(game.currentWave).get((indexOfUpgrade));
+
+                        game.upgrades.get(game.currentWave).remove("Impatience");
+                        game.upgrades_costs.get(game.currentWave).remove(game.upgrades_costs.get(game.currentWave).get(indexOfUpgrade));
+
+                        break;
+
                 }
             }
         }
@@ -994,6 +1085,10 @@ public class GameView extends SurfaceView implements Runnable
 
                 case "Magnet": // show red effect above the head of the entity
                     game.explainUpgrade = "shots follow enemies";
+                    break;
+
+                case "Impatience": // show red effect above the head of the entity
+                    game.explainUpgrade = "resurrections recharge x2 faster";
                     break;
 
             }
